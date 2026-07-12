@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.png" width="120" alt="Vyxel Apps logo"/>
+<img src="docs/logo.png" width="450" alt="Vyxel Apps logo"/>
 
 # Vyxel Apps
 
