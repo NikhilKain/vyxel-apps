@@ -1,238 +1,677 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vyxel Apps — Open-source GitHub app store</title>
-<meta name="description" content="Discover, install, and update Android apps directly from GitHub. Free, open-source, no ads, no tracking.">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg: #0b0d10;
-  --surface: #14171c;
-  --accent: #6366f1;
-  --accent-2: #8b5cf6;
-  --text: #f5f5f7;
-  --muted: #8b9098;
-  --border: #1f2329;
-}
-body {
-  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg); color: var(--text);
-  line-height: 1.6; overflow-x: hidden;
-}
-.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: rgba(11,13,16,0.85); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border); z-index: 100;
-  padding: 16px 0;
-}
-nav .container { display: flex; justify-content: space-between; align-items: center; }
-.logo { font-weight: 800; font-size: 20px; }
-.nav-links a { color: var(--muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
-.nav-links a:hover { color: var(--text); }
-
-.hero { padding: 160px 0 100px; text-align: center; position: relative; overflow: hidden; }
-.hero::before {
-  content: ""; position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
-  width: 800px; height: 800px;
-  background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 60%);
-  filter: blur(40px); z-index: -1;
-}
-.badge {
-  display: inline-block; padding: 6px 14px; background: rgba(99,102,241,0.15);
-  color: var(--accent); border-radius: 20px; font-size: 12px; font-weight: 600;
-  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px;
-}
-h1 {
-  font-size: clamp(40px, 7vw, 76px); font-weight: 900; line-height: 1.05;
-  background: linear-gradient(135deg, #fff 0%, #b0b3c0 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  margin-bottom: 24px;
-}
-.hero-sub { font-size: 19px; color: var(--muted); max-width: 600px; margin: 0 auto 40px; }
-.cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px;
-  text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
-}
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: white; box-shadow: 0 8px 32px rgba(99,102,241,0.35);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,0.5); }
-.btn-secondary {
-  background: var(--surface); color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { background: #1c2026; }
-
-.section { padding: 80px 0; }
-.section h2 { font-size: 36px; font-weight: 800; margin-bottom: 16px; text-align: center; }
-.section-sub { text-align: center; color: var(--muted); font-size: 16px; margin-bottom: 60px; }
-
-.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.feature {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; padding: 28px;
-}
-.feature-icon { font-size: 32px; margin-bottom: 16px; }
-.feature h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.feature p { color: var(--muted); font-size: 14px; }
-
-.screenshots { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.screenshots img {
-  width: 100%; border-radius: 16px;
-  border: 1px solid var(--border);
-}
-
-footer { padding: 60px 0; text-align: center; color: var(--muted); border-top: 1px solid var(--border); }
-footer a { color: var(--accent); text-decoration: none; }
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Outfit:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: #04060c; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    a:hover { color: inherit; }
+    ::selection { background: rgba(0,240,255,0.3); }
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(120,140,180,0.35); border-radius: 8px; }
+    @keyframes vxFloat { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-22px); } }
+    @keyframes vxSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes vxSpinRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+    @keyframes vxPulse { 0%,100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+    @keyframes vxMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes vxScan { 0% { top: -10%; } 100% { top: 110%; } }
+    @keyframes vxBlob { 0%,100% { border-radius: 58% 42% 55% 45% / 45% 58% 42% 55%; transform: translate(0,0) rotate(0deg) scale(1); } 33% { border-radius: 45% 55% 40% 60% / 60% 40% 60% 40%; transform: translate(40px,-50px) rotate(25deg) scale(1.12); } 66% { border-radius: 60% 40% 60% 40% / 40% 62% 38% 60%; transform: translate(-45px,35px) rotate(-18deg) scale(0.94); } }
+    @keyframes vxGlitchA { 0%,100% { clip-path: inset(0 0 92% 0); transform: translate(-4px,-3px); } 15% { clip-path: inset(55% 0 18% 0); transform: translate(4px,2px); } 30% { clip-path: inset(20% 0 62% 0); transform: translate(-3px,1px); } 45% { clip-path: inset(78% 0 4% 0); transform: translate(5px,-1px); } 60% { clip-path: inset(38% 0 44% 0); transform: translate(-5px,3px); } 75% { clip-path: inset(8% 0 80% 0); transform: translate(3px,-2px); } 90% { clip-path: inset(64% 0 22% 0); transform: translate(-2px,2px); } }
+    @keyframes vxGlitchB { 0%,100% { clip-path: inset(84% 0 4% 0); transform: translate(4px,2px); } 20% { clip-path: inset(12% 0 74% 0); transform: translate(-4px,-2px); } 40% { clip-path: inset(48% 0 34% 0); transform: translate(3px,3px); } 60% { clip-path: inset(70% 0 12% 0); transform: translate(-5px,-1px); } 80% { clip-path: inset(28% 0 58% 0); transform: translate(5px,1px); } }
+    @keyframes vxFlicker { 0%,100% { opacity: 1; } 41% { opacity: 1; } 42% { opacity: 0.6; } 43% { opacity: 1; } 78% { opacity: 1; } 79% { opacity: 0.5; } 80% { opacity: 1; } }
+    @keyframes vxShimmer { from { background-position: -200% center; } to { background-position: 200% center; } }
+    @keyframes vxRipple { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+  </style>
+</helmet>
+<div ref="{{ rootRef }}" data-screen-label="Vyxel Website" style="--bg:#04060c; --bg2:#080c18; --text:#dff3ff; --muted:#5f7392; --accent:#00f0ff; --accent2:#ff2d78; --accent-soft:rgba(0,240,255,0.12); --surface:rgba(8,14,28,0.72); --surface2:rgba(12,20,38,0.92); --border:rgba(0,240,255,0.28); --border-dim:rgba(0,240,255,0.14); --font-d:'Orbitron',sans-serif; --font-b:'Share Tech Mono',monospace; --r-lg:8px; --r-md:6px; --r-btn:4px; --shadow:0 0 44px rgba(0,240,255,0.14); --glow:0 0 22px rgba(0,240,255,0.55); --nav-bg:rgba(4,8,16,0.72); --title-grad:linear-gradient(100deg,#00f0ff,#7aa8ff 45%,#ff2d78); --btn-text:#04060c; --bf:blur(12px); background:var(--bg); color:var(--text); font-family:var(--font-b); min-height:100vh; transition:background 0.6s ease, color 0.6s ease; position:relative;">
 
-<nav>
-  <div class="container">
-    <div class="logo">⬡ Vyxel Apps</div>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#download">Download</a>
-      <a href="#support">Support</a>
-      <a href="https://github.com/NikhilKain/vyxel-apps">GitHub</a>
+  <!-- ===== animated canvas background ===== -->
+  <canvas ref="{{ canvasRef }}" style="position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;"></canvas>
+
+  <!-- ===== cyberpunk grid + scanlines ===== -->
+  <sc-if value="{{ isCyber }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(0,240,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.07) 1px, transparent 1px); background-size:56px 56px; mask-image:radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%); -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%);"></div>
+    <sc-if value="{{ scanOn }}" hint-placeholder-val="{{ true }}">
+      <div style="position:fixed; inset:0; z-index:50; pointer-events:none; background:repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 4px); opacity:0.5;"></div>
+      <div style="position:fixed; left:0; right:0; height:120px; z-index:50; pointer-events:none; background:linear-gradient(180deg, transparent, rgba(0,240,255,0.06), transparent); animation:vxScan 7s linear infinite;"></div>
+    </sc-if>
+  </sc-if>
+
+  <!-- ===== liquid glass blobs ===== -->
+  <sc-if value="{{ isGlass }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;">
+      <div style="position:absolute; top:-12%; left:-8%; width:620px; height:620px; background:radial-gradient(circle at 35% 35%, rgba(10,132,255,0.4), rgba(10,132,255,0) 70%); filter:blur(40px); animation:vxBlob 18s ease-in-out infinite;"></div>
+      <div style="position:absolute; top:30%; right:-12%; width:700px; height:700px; background:radial-gradient(circle at 60% 40%, rgba(124,92,255,0.35), rgba(124,92,255,0) 70%); filter:blur(50px); animation:vxBlob 22s ease-in-out infinite reverse;"></div>
+      <div style="position:absolute; bottom:-15%; left:22%; width:560px; height:560px; background:radial-gradient(circle at 50% 50%, rgba(64,200,255,0.35), rgba(64,200,255,0) 70%); filter:blur(45px); animation:vxBlob 26s ease-in-out infinite;"></div>
     </div>
-  </div>
-</nav>
+  </sc-if>
 
-<section class="hero">
-  <div class="container">
-    <div class="badge">v1.0 · Open Source · Free Forever</div>
-    <h1>The GitHub-powered<br>Android app store.</h1>
-    <p class="hero-sub">
-      Discover, install, and update apps directly from GitHub releases. No ads. No tracking.
-      Built for people who care about open-source.
-    </p>
-    <div class="cta-row">
-      <a href="https://github.com/NikhilKain/vyxel-apps/releases/latest/" class="btn btn-primary">
-        ⬇ Download APK
-      </a>
-      <a href="https://github.com/NikhilKain/vyxel-apps" class="btn btn-secondary">
-        ⭐ Star on GitHub
-      </a>
+  <!-- ===== material 3 morphing shapes ===== -->
+  <sc-if value="{{ isMaterial }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;">
+      <div style="position:absolute; top:-10%; right:-6%; width:540px; height:540px; background:rgba(208,188,255,0.09); animation:vxBlob 20s ease-in-out infinite;"></div>
+      <div style="position:absolute; bottom:-12%; left:-8%; width:620px; height:620px; background:rgba(239,184,200,0.07); animation:vxBlob 25s ease-in-out infinite reverse;"></div>
+      <div style="position:absolute; top:38%; left:40%; width:320px; height:320px; background:rgba(208,188,255,0.06); animation:vxBlob 16s ease-in-out infinite;"></div>
     </div>
-  </div>
-</section>
+  </sc-if>
 
-<section class="section" id="features">
-  <div class="container">
-    <h2>Everything you need.</h2>
-    <p class="section-sub">A complete app store experience — without the corporate baggage.</p>
-    <div class="features">
-      <div class="feature"><div class="feature-icon">💡</div><h3>Smart Discovery</h3><p>18+ curated categories from privacy tools to games to productivity apps.</p></div>
-      <div class="feature"><div class="feature-icon">⚡</div><h3>Smart APK Detection</h3><p>Auto-picks the right architecture for your device — arm64, arm, x86.</p></div>
-      <div class="feature"><div class="feature-icon">🛡</div><h3>Trust Score</h3><p>Every app gets a 0–100 score based on stars, activity, releases, and forks.</p></div>
-      <div class="feature"><div class="feature-icon">🔔</div><h3>Background Updates</h3><p>Get notified when your installed apps have new releases. Skip versions you don't want.</p></div>
-      <div class="feature"><div class="feature-icon">⚖️</div><h3>App Comparison</h3><p>Compare two apps side-by-side — features, stars, ecosystem.</p></div>
-      <div class="feature"><div class="feature-icon">🌙</div><h3>Beautiful UI</h3><p>Dark, light, AMOLED themes. Custom accent colors. Material 3 design.</p></div>
-      <div class="feature"><div class="feature-icon">🔄</div><h3>Install History & Rollback</h3><p>Keeps your last 3 versions. Roll back when an update breaks something.</p></div>
-      <div class="feature"><div class="feature-icon">⭐</div><h3>GitHub Sync</h3><p>Sync your starred repos directly into your favourites.</p></div>
-      <div class="feature"><div class="feature-icon">🔎</div><h3>Search</h3><p>Search your favorite apps with one tap.</p></div>
+  <!-- ===== nav ===== -->
+  <nav style="position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; gap:20px; flex-wrap:wrap; padding:14px 28px; background:var(--nav-bg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); border-bottom:1px solid var(--border-dim); transition:background 0.6s ease, border-color 0.6s ease;">
+    <a href="#top" style="display:flex; align-items:center; gap:10px;">
+      <img src="assets/logo.png" alt="Vyxel" style="width:36px; height:36px; filter:drop-shadow(0 0 8px var(--accent));">
+      <span style="font-family:var(--font-d); font-weight:900; font-size:20px; letter-spacing:0.14em; background:var(--title-grad); -webkit-background-clip:text; background-clip:text; color:transparent;">VYXEL</span>
+    </a>
+    <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-left:auto;">
+      <a href="#features" style="padding:8px 14px; font-size:13px; color:var(--muted); border-radius:var(--r-btn); transition:color 0.25s, background 0.25s;" style-hover="color:var(--accent); background:var(--accent-soft);">FEATURES</a>
+      <a href="#trust" style="padding:8px 14px; font-size:13px; color:var(--muted); border-radius:var(--r-btn); transition:color 0.25s, background 0.25s;" style-hover="color:var(--accent); background:var(--accent-soft);">TRUST SCORE</a>
+      <a href="#themes" style="padding:8px 14px; font-size:13px; color:var(--muted); border-radius:var(--r-btn); transition:color 0.25s, background 0.25s;" style-hover="color:var(--accent); background:var(--accent-soft);">THEMES</a>
+      <a href="#download" style="padding:8px 14px; font-size:13px; color:var(--muted); border-radius:var(--r-btn); transition:color 0.25s, background 0.25s;" style-hover="color:var(--accent); background:var(--accent-soft);">DOWNLOAD</a>
     </div>
-  </div>
-</section>
+    <div style="display:flex; align-items:center; gap:6px; padding:5px; border:1px solid var(--border); border-radius:var(--r-btn); background:var(--surface); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.6s, background 0.6s;">
+      <button data-theme="cyber" onClick="{{ onThemeClick }}" style="display:flex; align-items:center; gap:7px; padding:7px 12px; font-family:var(--font-b); font-size:12px; letter-spacing:0.06em; color:var(--text); background:transparent; border:none; border-radius:calc(var(--r-btn) - 1px); cursor:pointer; transition:background 0.3s;" style-hover="background:var(--accent-soft);">
+        <sc-if value="{{ isCyber }}" hint-placeholder-val="{{ true }}"><span style="width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:var(--glow); display:inline-block;"></span></sc-if>
+        CYBERPUNK
+      </button>
+      <button data-theme="material" onClick="{{ onThemeClick }}" style="display:flex; align-items:center; gap:7px; padding:7px 12px; font-family:var(--font-b); font-size:12px; letter-spacing:0.06em; color:var(--text); background:transparent; border:none; border-radius:calc(var(--r-btn) - 1px); cursor:pointer; transition:background 0.3s;" style-hover="background:var(--accent-soft);">
+        <sc-if value="{{ isMaterial }}" hint-placeholder-val="{{ false }}"><span style="width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:var(--glow); display:inline-block;"></span></sc-if>
+        MATERIAL 3
+      </button>
+      <button data-theme="glass" onClick="{{ onThemeClick }}" style="display:flex; align-items:center; gap:7px; padding:7px 12px; font-family:var(--font-b); font-size:12px; letter-spacing:0.06em; color:var(--text); background:transparent; border:none; border-radius:calc(var(--r-btn) - 1px); cursor:pointer; transition:background 0.3s;" style-hover="background:var(--accent-soft);">
+        <sc-if value="{{ isGlass }}" hint-placeholder-val="{{ false }}"><span style="width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:var(--glow); display:inline-block;"></span></sc-if>
+        LIQUID GLASS
+      </button>
+    </div>
+  </nav>
 
-<section class="section" id="download">
-  <div class="container" style="text-align: center;">
-    <h2>Install Vyxel today.</h2>
-    <p class="section-sub">Free, open-source, and built with love.</p>
-    <a href="https://github.com/NikhilKain/vyxel-apps/releases/latest" class="btn btn-primary">⬇ Download Latest APK</a>
-  </div>
-</section>
-
-  <section class="section" id="support">
-  <div class="container" style="text-align: center;">
-    
-    <h2>☕ Support Development</h2>
-
-    <p class="section-sub" style="max-width: 700px; margin: 0 auto 40px;">
-      Vyxel Apps is built independently and actively maintained.
-      If you enjoy the project and want to support future updates,
-      bug fixes, and new features, consider supporting development.
-    </p>
-
-    <div style="
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 500px;
-      margin: 0 auto;
-    ">
-
-      <h3 style="margin-bottom: 12px;">UPI Support</h3>
-
-      <p style="
-  color: var(--muted);
-  margin-bottom: 20px;
-  font-size: 15px;
-">
-  Your support helps improve Vyxel Apps and keep development active ❤️
-</p>
-
-      <div style="
-        background: #0f1115;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 20px;
-        font-weight: 700;
-        font-size: 18px;
-      ">
-        vyxelapps@airtel
+  <!-- ===== hero ===== -->
+  <section id="top" data-screen-label="Hero" ref="{{ heroRef }}" style="position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; padding:140px 6vw 80px; box-sizing:border-box;">
+    <div style="display:flex; align-items:center; gap:6vw; flex-wrap:wrap; width:100%; max-width:1320px; margin:0 auto;">
+      <div style="flex:1 1 480px; min-width:320px;">
+        <div style="display:inline-flex; align-items:center; gap:10px; padding:8px 16px; border:1px solid var(--border); border-radius:var(--r-btn); background:var(--surface); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); font-size:13px; letter-spacing:0.18em; color:var(--accent); animation:vxFlicker 6s infinite; transition:border-color 0.6s, background 0.6s, color 0.6s;">
+          <span style="width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:var(--glow); animation:vxPulse 2s ease-in-out infinite;"></span>
+          THE GITHUB-POWERED APP STORE
+        </div>
+        <h1 style="position:relative; margin:26px 0 0; font-family:var(--font-d); font-weight:900; font-size:clamp(72px, 12vw, 168px); line-height:0.95; letter-spacing:0.02em;">
+          <span style="background:var(--title-grad); -webkit-background-clip:text; background-clip:text; color:transparent;">VYXEL</span>
+          <sc-if value="{{ isCyber }}" hint-placeholder-val="{{ true }}">
+            <span aria-hidden="true" style="position:absolute; inset:0; color:var(--accent); animation:vxGlitchA 2.8s steps(1) infinite; opacity:0.85; pointer-events:none;">VYXEL</span>
+            <span aria-hidden="true" style="position:absolute; inset:0; color:var(--accent2); animation:vxGlitchB 3.4s steps(1) infinite; opacity:0.85; pointer-events:none;">VYXEL</span>
+          </sc-if>
+        </h1>
+        <p style="margin:26px 0 0; max-width:520px; font-size:clamp(16px, 1.6vw, 20px); line-height:1.65; color:var(--muted); transition:color 0.6s;">
+          Discover, install &amp; update Android apps straight from <span style="color:var(--text); transition:color 0.6s;">GitHub releases</span>. Free. Open source. No ads. No tracking.
+        </p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:38px;">
+          <a href="#download" style="position:relative; overflow:hidden; display:inline-flex; align-items:center; gap:10px; padding:16px 32px; font-family:var(--font-d); font-weight:700; font-size:15px; letter-spacing:0.1em; color:var(--btn-text); background:var(--accent); border-radius:var(--r-btn); box-shadow:var(--glow); transition:transform 0.25s, box-shadow 0.25s, background 0.6s, color 0.6s;" style-hover="transform:translateY(-3px) scale(1.03); box-shadow:0 0 40px var(--accent); color:var(--btn-text);">
+            ▼ DOWNLOAD APK
+          </a>
+          <a href="#features" style="display:inline-flex; align-items:center; gap:10px; padding:16px 32px; font-family:var(--font-d); font-weight:700; font-size:15px; letter-spacing:0.1em; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-btn); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:transform 0.25s, border-color 0.25s, background 0.6s, color 0.6s;" style-hover="transform:translateY(-3px); border-color:var(--accent); color:var(--text);">
+            EXPLORE ▶
+          </a>
+        </div>
+        <div style="display:flex; gap:40px; flex-wrap:wrap; margin-top:56px;">
+          <div>
+            <div style="font-family:var(--font-d); font-weight:900; font-size:36px; color:var(--accent); transition:color 0.6s;"><span data-count="18">0</span>+</div>
+            <div style="font-size:12px; letter-spacing:0.16em; color:var(--muted); margin-top:4px;">CURATED CATEGORIES</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-d); font-weight:900; font-size:36px; color:var(--accent); transition:color 0.6s;"><span data-count="100">0</span></div>
+            <div style="font-size:12px; letter-spacing:0.16em; color:var(--muted); margin-top:4px;">TRUST SCORE SCALE</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-d); font-weight:900; font-size:36px; color:var(--accent); transition:color 0.6s;"><span data-count="3">0</span></div>
+            <div style="font-size:12px; letter-spacing:0.16em; color:var(--muted); margin-top:4px;">VERSIONS OF ROLLBACK</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-d); font-weight:900; font-size:36px; color:var(--accent); transition:color 0.6s;"><span data-count="0">0</span></div>
+            <div style="font-size:12px; letter-spacing:0.16em; color:var(--muted); margin-top:4px;">ADS · TRACKERS · FEES</div>
+          </div>
+        </div>
       </div>
-
-      <img
-        src="upi.png"
-        alt="UPI QR"
-        style="
-          width: 220px;
-          border-radius: 16px;
-          border: 1px solid var(--border);
-          margin-bottom: 24px;
-        "
-      >
-
-      <br>
-
-   <p style="
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 24px;
-">
-  Scan the QR code or use the UPI ID above to support development.
-</p>
-
-<a
-  href="https://ko-fi.com/vyxelapps"
-  target="_blank"
-  class="btn btn-secondary"
->
-  🌍 Support Internationally
-</a>
-
+      <div ref="{{ heroArtRef }}" style="flex:1 1 380px; min-width:300px; display:flex; justify-content:center; align-items:center; position:relative; min-height:440px; transition:transform 0.15s ease-out;">
+        <div style="position:absolute; width:min(480px,80vw); height:min(480px,80vw); border:1px dashed var(--border); border-radius:50%; animation:vxSpin 40s linear infinite; transition:border-color 0.6s;"></div>
+        <div style="position:absolute; width:min(380px,64vw); height:min(380px,64vw); border:1px solid var(--border-dim); border-radius:50%; animation:vxSpinRev 28s linear infinite; transition:border-color 0.6s;">
+          <span style="position:absolute; top:-6px; left:50%; width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:var(--glow);"></span>
+        </div>
+        <div style="position:absolute; width:min(480px,80vw); height:min(480px,80vw); border-radius:50%; animation:vxSpin 40s linear infinite;">
+          <span style="position:absolute; bottom:8%; right:12%; width:9px; height:9px; border-radius:50%; background:var(--accent2); box-shadow:0 0 14px var(--accent2);"></span>
+        </div>
+        <div style="position:absolute; width:min(320px,55vw); height:min(320px,55vw); border-radius:50%; background:radial-gradient(circle, var(--accent-soft), transparent 70%); animation:vxPulse 4s ease-in-out infinite;"></div>
+        <img src="assets/logo.png" alt="Vyxel planet logo" style="width:min(340px,58vw); position:relative; z-index:2; animation:vxFloat 6s ease-in-out infinite; filter:drop-shadow(0 24px 48px rgba(0,0,0,0.5)) drop-shadow(0 0 32px var(--accent-soft));">
+      </div>
     </div>
+  </section>
 
+  <!-- ===== category ticker ===== -->
+  <div data-screen-label="Category Ticker" style="position:relative; z-index:1; overflow:hidden; border-top:1px solid var(--border-dim); border-bottom:1px solid var(--border-dim); background:var(--surface); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); padding:16px 0; transition:background 0.6s, border-color 0.6s;">
+    <div style="display:flex; gap:0; width:max-content; animation:vxMarquee 30s linear infinite;">
+      <div style="display:flex; gap:44px; padding:0 22px; font-size:14px; letter-spacing:0.22em; color:var(--muted); white-space:nowrap;">
+        <span>PRIVACY</span><span style="color:var(--accent);">◆</span><span>MEDIA</span><span style="color:var(--accent);">◆</span><span>GAMES</span><span style="color:var(--accent);">◆</span><span>PRODUCTIVITY</span><span style="color:var(--accent);">◆</span><span>DEV TOOLS</span><span style="color:var(--accent);">◆</span><span>SECURITY</span><span style="color:var(--accent);">◆</span><span>CUSTOMIZATION</span><span style="color:var(--accent);">◆</span><span>BROWSERS</span><span style="color:var(--accent);">◆</span><span>MUSIC</span><span style="color:var(--accent);">◆</span><span>SYSTEM TOOLS</span><span style="color:var(--accent);">◆</span><span>EMULATORS</span><span style="color:var(--accent);">◆</span><span>READERS</span><span style="color:var(--accent);">◆</span>
+      </div>
+      <div style="display:flex; gap:44px; padding:0 22px; font-size:14px; letter-spacing:0.22em; color:var(--muted); white-space:nowrap;">
+        <span>PRIVACY</span><span style="color:var(--accent);">◆</span><span>MEDIA</span><span style="color:var(--accent);">◆</span><span>GAMES</span><span style="color:var(--accent);">◆</span><span>PRODUCTIVITY</span><span style="color:var(--accent);">◆</span><span>DEV TOOLS</span><span style="color:var(--accent);">◆</span><span>SECURITY</span><span style="color:var(--accent);">◆</span><span>CUSTOMIZATION</span><span style="color:var(--accent);">◆</span><span>BROWSERS</span><span style="color:var(--accent);">◆</span><span>MUSIC</span><span style="color:var(--accent);">◆</span><span>SYSTEM TOOLS</span><span style="color:var(--accent);">◆</span><span>EMULATORS</span><span style="color:var(--accent);">◆</span><span>READERS</span><span style="color:var(--accent);">◆</span>
+      </div>
+    </div>
   </div>
-</section>
 
-<footer>
-  <div class="container">
-    <p>Built with ❤️ by <a href="https://github.com/NikhilKain">Nikhil</a></p>
-    <p style="margin-top: 8px;">AGPL-3.0 License · <a href="https://github.com/NikhilKain/vyxel-apps">Source on GitHub</a></p>
-  </div>
-</footer>
+  <!-- ===== features ===== -->
+  <section id="features" data-screen-label="Features" style="position:relative; z-index:1; padding:120px 6vw; max-width:1320px; margin:0 auto; box-sizing:border-box;">
+    <div data-reveal="true" style="margin-bottom:64px;">
+      <div style="font-size:13px; letter-spacing:0.3em; color:var(--accent); transition:color 0.6s;">// CAPABILITIES</div>
+      <h2 style="margin:14px 0 0; font-family:var(--font-d); font-weight:900; font-size:clamp(36px,5vw,60px); letter-spacing:0.02em;">EVERYTHING A STORE SHOULD BE</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:22px;">
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🔍</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">SMART APK DETECTION</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Auto-picks the right APK architecture for your device from every release — arm64, armeabi, x86, universal.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🛡</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">TRUST SCORE SYSTEM</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Every repo scored 0–100 from stars, activity, releases and forks — so you know what you're installing.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🔔</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">UPDATE MONITORING</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Background watcher pings you the moment an installed app publishes a new GitHub release.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">⚖️</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">COMPARISON MODE</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Put two apps side-by-side — trust score, size, activity, releases — and pick the better one.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">📸</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">REPO SCREENSHOTS</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Screenshots auto-extracted straight from each project's README — see the app before you install.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🔄</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">HISTORY &amp; ROLLBACK</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Bad update? Vyxel keeps your last 3 versions so you can roll back in one tap.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">⭐</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">STARRED REPO SYNC</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Sync your GitHub stars into favourites — your taste follows you into the store.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🌙</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">THEMES EVERYWHERE</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Dark, light, AMOLED, custom accents — Material 3, Liquid Glass and Cyberpunk, just like this site.</p>
+      </div>
+      <div data-reveal="true" data-tilt="true" style="position:relative; overflow:hidden; padding:30px; background:var(--surface); border:1px solid var(--border-dim); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:border-color 0.3s, box-shadow 0.3s, background 0.6s;" style-hover="border-color:var(--accent); box-shadow:var(--shadow);">
+        <div style="width:52px; height:52px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--accent-soft); border:1px solid var(--border); border-radius:var(--r-md); transition:border-color 0.6s, background 0.6s;">🗂</div>
+        <h3 style="margin:20px 0 10px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:0.05em;">18+ CATEGORIES</h3>
+        <p style="margin:0; font-size:14px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Hand-curated shelves — Privacy, Media, Games, Productivity, Dev Tools and more.</p>
+      </div>
+    </div>
+  </section>
 
+  <!-- ===== trust score ===== -->
+  <section id="trust" data-screen-label="Trust Score" style="position:relative; z-index:1; padding:120px 6vw; border-top:1px solid var(--border-dim); transition:border-color 0.6s;">
+    <div style="display:flex; align-items:center; gap:8vw; flex-wrap:wrap; max-width:1320px; margin:0 auto;">
+      <div data-reveal="true" style="flex:0 0 auto; margin:0 auto; position:relative; width:280px; height:280px; display:flex; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:-30px; border-radius:50%; background:radial-gradient(circle, var(--accent-soft), transparent 70%); animation:vxPulse 3.5s ease-in-out infinite;"></div>
+        <svg width="280" height="280" viewBox="0 0 280 280" style="transform:rotate(-90deg);">
+          <circle cx="140" cy="140" r="118" fill="none" stroke="var(--border-dim)" stroke-width="14"></circle>
+          <circle data-ring="87" cx="140" cy="140" r="118" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="741.4" stroke-dashoffset="741.4" style="transition:stroke-dashoffset 2s cubic-bezier(0.22,1,0.36,1), stroke 0.6s; filter:drop-shadow(0 0 10px var(--accent));"></circle>
+        </svg>
+        <div style="position:absolute; display:flex; flex-direction:column; align-items:center;">
+          <div style="font-family:var(--font-d); font-weight:900; font-size:64px; color:var(--accent); transition:color 0.6s;"><span data-count="87">0</span></div>
+          <div style="font-size:12px; letter-spacing:0.24em; color:var(--muted);">TRUST SCORE</div>
+        </div>
+      </div>
+      <div style="flex:1 1 440px; min-width:300px;">
+        <div data-reveal="true">
+          <div style="font-size:13px; letter-spacing:0.3em; color:var(--accent); transition:color 0.6s;">// TRUST, QUANTIFIED</div>
+          <h2 style="margin:14px 0 18px; font-family:var(--font-d); font-weight:900; font-size:clamp(32px,4.5vw,54px);">KNOW BEFORE YOU INSTALL</h2>
+          <p style="margin:0 0 40px; max-width:560px; font-size:16px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Vyxel computes a 0–100 Trust Score for every repository from real GitHub signals — no reviews to fake, no ratings to buy.</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:22px; max-width:560px;">
+          <div data-reveal="true">
+            <div style="display:flex; justify-content:space-between; font-size:13px; letter-spacing:0.14em; margin-bottom:8px;"><span>⭐ STARS</span><span style="color:var(--accent); transition:color 0.6s;">92</span></div>
+            <div style="height:8px; background:var(--border-dim); border-radius:99px; overflow:hidden; transition:background 0.6s;"><div data-bar="92" style="height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:99px; box-shadow:var(--glow); transition:width 1.6s cubic-bezier(0.22,1,0.36,1);"></div></div>
+          </div>
+          <div data-reveal="true">
+            <div style="display:flex; justify-content:space-between; font-size:13px; letter-spacing:0.14em; margin-bottom:8px;"><span>📈 COMMIT ACTIVITY</span><span style="color:var(--accent); transition:color 0.6s;">85</span></div>
+            <div style="height:8px; background:var(--border-dim); border-radius:99px; overflow:hidden; transition:background 0.6s;"><div data-bar="85" style="height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:99px; box-shadow:var(--glow); transition:width 1.6s cubic-bezier(0.22,1,0.36,1);"></div></div>
+          </div>
+          <div data-reveal="true">
+            <div style="display:flex; justify-content:space-between; font-size:13px; letter-spacing:0.14em; margin-bottom:8px;"><span>📦 RELEASE CADENCE</span><span style="color:var(--accent); transition:color 0.6s;">88</span></div>
+            <div style="height:8px; background:var(--border-dim); border-radius:99px; overflow:hidden; transition:background 0.6s;"><div data-bar="88" style="height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:99px; box-shadow:var(--glow); transition:width 1.6s cubic-bezier(0.22,1,0.36,1);"></div></div>
+          </div>
+          <div data-reveal="true">
+            <div style="display:flex; justify-content:space-between; font-size:13px; letter-spacing:0.14em; margin-bottom:8px;"><span>🔱 FORKS</span><span style="color:var(--accent); transition:color 0.6s;">81</span></div>
+            <div style="height:8px; background:var(--border-dim); border-radius:99px; overflow:hidden; transition:background 0.6s;"><div data-bar="81" style="height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:99px; box-shadow:var(--glow); transition:width 1.6s cubic-bezier(0.22,1,0.36,1);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== theme showcase ===== -->
+  <section id="themes" data-screen-label="Theme Showcase" style="position:relative; z-index:1; padding:120px 6vw; border-top:1px solid var(--border-dim); transition:border-color 0.6s;">
+    <div style="max-width:1320px; margin:0 auto;">
+      <div data-reveal="true" style="margin-bottom:64px; text-align:center;">
+        <div style="font-size:13px; letter-spacing:0.3em; color:var(--accent); transition:color 0.6s;">// PICK YOUR REALITY</div>
+        <h2 style="margin:14px 0 12px; font-family:var(--font-d); font-weight:900; font-size:clamp(36px,5vw,60px);">THREE THEMES. ONE STORE.</h2>
+        <p style="margin:0; font-size:15px; color:var(--muted); transition:color 0.6s;">Tap a card — the whole site reskins live, exactly like the app does.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:26px;">
+
+        <!-- cyberpunk card -->
+        <div data-reveal="true" data-theme="cyber" onClick="{{ onThemeClick }}" style="cursor:pointer; overflow:hidden; background:#05070e; border:1px solid rgba(0,240,255,0.35); border-radius:var(--r-lg); box-shadow:0 0 34px rgba(0,240,255,0.12); transition:transform 0.3s, box-shadow 0.3s;" style-hover="transform:translateY(-8px); box-shadow:0 0 50px rgba(0,240,255,0.3);">
+          <div style="padding:22px; background:repeating-linear-gradient(0deg, rgba(0,0,0,0.25) 0px, rgba(0,0,0,0.25) 1px, transparent 1px, transparent 4px), #070b16;">
+            <div style="display:flex; flex-direction:column; gap:10px; border:1px solid rgba(0,240,255,0.3); padding:14px; background:rgba(4,8,18,0.9);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="width:26px; height:26px; background:rgba(0,240,255,0.15); border:1px solid rgba(0,240,255,0.5); display:inline-block;"></span>
+                <span style="height:8px; flex:1; background:linear-gradient(90deg,#00f0ff,#ff2d78); display:inline-block;"></span>
+              </div>
+              <div style="height:6px; width:80%; background:rgba(0,240,255,0.25);"></div>
+              <div style="height:6px; width:60%; background:rgba(255,45,120,0.3);"></div>
+              <div style="display:flex; gap:8px; margin-top:4px;">
+                <span style="flex:1; height:22px; background:#00f0ff; display:inline-block;"></span>
+                <span style="flex:1; height:22px; border:1px solid rgba(0,240,255,0.5); display:inline-block;"></span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:22px 24px 26px; border-top:1px solid rgba(0,240,255,0.25);">
+            <h3 style="margin:0 0 8px; font-family:'Orbitron',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.08em; color:#00f0ff;">CYBERPUNK</h3>
+            <p style="margin:0 0 18px; font-family:'Share Tech Mono',monospace; font-size:13px; line-height:1.6; color:#5f7392;">Neon grids, scanlines, glitch type. The night city build.</p>
+            <span style="display:inline-block; padding:10px 20px; font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.12em; color:#04060c; background:#00f0ff; box-shadow:0 0 18px rgba(0,240,255,0.5);">APPLY THEME</span>
+          </div>
+        </div>
+
+        <!-- material card -->
+        <div data-reveal="true" data-theme="material" onClick="{{ onThemeClick }}" style="cursor:pointer; overflow:hidden; background:#1d1b22; border:1px solid rgba(208,188,255,0.25); border-radius:30px; box-shadow:0 12px 34px rgba(0,0,0,0.4); transition:transform 0.3s, box-shadow 0.3s;" style-hover="transform:translateY(-8px); box-shadow:0 24px 54px rgba(0,0,0,0.55);">
+          <div style="padding:22px; background:#141218;">
+            <div style="display:flex; flex-direction:column; gap:10px; padding:16px; background:#211f28; border-radius:22px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="width:26px; height:26px; border-radius:50%; background:#d0bcff; display:inline-block;"></span>
+                <span style="height:8px; flex:1; border-radius:99px; background:#49454f; display:inline-block;"></span>
+              </div>
+              <div style="height:6px; width:80%; border-radius:99px; background:#39353f;"></div>
+              <div style="height:6px; width:60%; border-radius:99px; background:#39353f;"></div>
+              <div style="display:flex; gap:8px; margin-top:4px;">
+                <span style="flex:1; height:22px; border-radius:99px; background:#d0bcff; display:inline-block;"></span>
+                <span style="flex:1; height:22px; border-radius:99px; border:1px solid #938f99; display:inline-block;"></span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:22px 24px 26px; border-top:1px solid rgba(208,188,255,0.15);">
+            <h3 style="margin:0 0 8px; font-family:'Roboto',sans-serif; font-weight:500; font-size:19px; color:#d0bcff;">Material 3</h3>
+            <p style="margin:0 0 18px; font-family:'Roboto',sans-serif; font-size:13.5px; line-height:1.6; color:#948f9b;">Dynamic color, soft tonal surfaces, pill everything. Pure Android.</p>
+            <span style="display:inline-block; padding:10px 22px; font-family:'Roboto',sans-serif; font-size:13px; font-weight:500; color:#381e72; background:#d0bcff; border-radius:99px;">Apply theme</span>
+          </div>
+        </div>
+
+        <!-- glass card -->
+        <div data-reveal="true" data-theme="glass" onClick="{{ onThemeClick }}" style="cursor:pointer; overflow:hidden; position:relative; background:linear-gradient(135deg,#dfe9f8,#eef3fb); border:1px solid rgba(255,255,255,0.9); border-radius:32px; box-shadow:0 18px 44px rgba(30,60,120,0.18); transition:transform 0.3s, box-shadow 0.3s;" style-hover="transform:translateY(-8px); box-shadow:0 30px 64px rgba(30,60,120,0.28);">
+          <div style="position:absolute; top:-40px; right:-30px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(10,132,255,0.35), transparent 70%); filter:blur(10px);"></div>
+          <div style="position:absolute; bottom:20px; left:-40px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle, rgba(124,92,255,0.3), transparent 70%); filter:blur(12px);"></div>
+          <div style="padding:22px; position:relative;">
+            <div style="display:flex; flex-direction:column; gap:10px; padding:16px; background:rgba(255,255,255,0.55); border:1px solid rgba(255,255,255,0.9); border-radius:24px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 8px 24px rgba(30,60,120,0.12);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="width:26px; height:26px; border-radius:9px; background:linear-gradient(135deg,#0a84ff,#7c5cff); display:inline-block;"></span>
+                <span style="height:8px; flex:1; border-radius:99px; background:rgba(12,22,38,0.15); display:inline-block;"></span>
+              </div>
+              <div style="height:6px; width:80%; border-radius:99px; background:rgba(12,22,38,0.12);"></div>
+              <div style="height:6px; width:60%; border-radius:99px; background:rgba(12,22,38,0.12);"></div>
+              <div style="display:flex; gap:8px; margin-top:4px;">
+                <span style="flex:1; height:22px; border-radius:99px; background:#0a84ff; display:inline-block;"></span>
+                <span style="flex:1; height:22px; border-radius:99px; background:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,1); display:inline-block;"></span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:22px 24px 26px; position:relative; border-top:1px solid rgba(255,255,255,0.8);">
+            <h3 style="margin:0 0 8px; font-family:'Outfit',sans-serif; font-weight:700; font-size:19px; color:#0c1626;">Liquid Glass</h3>
+            <p style="margin:0 0 18px; font-family:'Outfit',sans-serif; font-size:13.5px; line-height:1.6; color:#5a6b84;">Frosted panels floating over drifting color. Light, fluid, luminous.</p>
+            <span style="display:inline-block; padding:10px 22px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:#ffffff; background:linear-gradient(135deg,#0a84ff,#7c5cff); border-radius:99px; box-shadow:0 8px 20px rgba(10,132,255,0.35);">Apply theme</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== download ===== -->
+  <section id="download" data-screen-label="Download" style="position:relative; z-index:1; padding:130px 6vw 110px; border-top:1px solid var(--border-dim); transition:border-color 0.6s;">
+    <div style="max-width:880px; margin:0 auto; text-align:center;">
+      <div data-reveal="true" style="position:relative; display:inline-block;">
+        <div style="position:absolute; inset:-14px; border-radius:50%; border:1px solid var(--border); animation:vxRipple 2.6s ease-out infinite;"></div>
+        <div style="position:absolute; inset:-14px; border-radius:50%; border:1px solid var(--border); animation:vxRipple 2.6s ease-out infinite; animation-delay:1.3s;"></div>
+        <img src="assets/logo.png" alt="Vyxel" style="width:110px; position:relative; animation:vxFloat 5s ease-in-out infinite;">
+      </div>
+      <h2 data-reveal="true" style="margin:34px 0 16px; font-family:var(--font-d); font-weight:900; font-size:clamp(34px,5vw,58px);">JACK INTO THE STORE</h2>
+      <p data-reveal="true" style="margin:0 auto 40px; max-width:520px; font-size:16px; line-height:1.7; color:var(--muted); transition:color 0.6s;">Grab the APK from the official repository, verify the signature, and never sideload blind again.</p>
+      <div data-reveal="true" style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a href="#" style="display:inline-flex; align-items:center; gap:10px; padding:18px 40px; font-family:var(--font-d); font-weight:700; font-size:16px; letter-spacing:0.1em; color:var(--btn-text); background:var(--accent); border-radius:var(--r-btn); box-shadow:var(--glow); transition:transform 0.25s, box-shadow 0.25s, background 0.6s, color 0.6s;" style-hover="transform:translateY(-3px) scale(1.04); box-shadow:0 0 46px var(--accent); color:var(--btn-text);">▼ DOWNLOAD APK</a>
+        <a href="#" style="display:inline-flex; align-items:center; gap:10px; padding:18px 40px; font-family:var(--font-d); font-weight:700; font-size:16px; letter-spacing:0.1em; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-btn); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:transform 0.25s, border-color 0.25s, color 0.6s;" style-hover="transform:translateY(-3px); border-color:var(--accent); color:var(--text);">★ STAR ON GITHUB</a>
+      </div>
+      <div data-reveal="true" style="margin:56px auto 0; max-width:640px; padding:22px 26px; text-align:left; display:flex; gap:16px; align-items:flex-start; background:var(--surface); border:1px solid var(--accent2); border-radius:var(--r-lg); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:background 0.6s, border-color 0.6s;">
+        <span style="font-size:22px; line-height:1;">⚠️</span>
+        <p style="margin:0; font-size:13.5px; line-height:1.7; color:var(--muted); transition:color 0.6s;"><strong style="color:var(--text); letter-spacing:0.06em; transition:color 0.6s;">OFFICIAL SOURCE NOTICE —</strong> the only official source for Vyxel Apps is the official repository. APKs from any other website, Telegram channel, or mirror are unofficial and may be tampered with. Always verify the signature.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== footer ===== -->
+  <footer data-screen-label="Footer" style="position:relative; z-index:1; padding:44px 6vw; border-top:1px solid var(--border-dim); background:var(--surface); backdrop-filter:var(--bf); -webkit-backdrop-filter:var(--bf); transition:background 0.6s, border-color 0.6s;">
+    <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap; max-width:1320px; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="assets/logo.png" alt="Vyxel" style="width:28px; height:28px;">
+        <span style="font-family:var(--font-d); font-weight:700; font-size:15px; letter-spacing:0.12em;">VYXEL APPS</span>
+      </div>
+      <span style="font-size:12.5px; color:var(--muted); transition:color 0.6s;">Free · Open source · No ads · No tracking</span>
+      <div style="display:flex; gap:20px; flex-wrap:wrap; margin-left:auto; font-size:13px;">
+        <a href="#" style="color:var(--muted); transition:color 0.25s;" style-hover="color:var(--accent);">GitHub</a>
+        <a href="#" style="color:var(--muted); transition:color 0.25s;" style-hover="color:var(--accent);">Report Bug</a>
+        <a href="#" style="color:var(--muted); transition:color 0.25s;" style-hover="color:var(--accent);">License</a>
+      </div>
+      <span style="font-size:12px; color:var(--muted); width:100%; transition:color 0.6s;">© 2026 Vyxel Apps — built by its creator, for people who read changelogs.</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cyberpunk&quot;,&quot;material3&quot;,&quot;liquidglass&quot;],&quot;default&quot;:&quot;cyberpunk&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;particles&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Effects&quot;},&quot;scanlines&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Effects&quot;}}">
+const THEMES = {
+  cyber: {
+    vars: {
+      '--bg': '#04060c', '--bg2': '#080c18', '--text': '#dff3ff', '--muted': '#5f7392',
+      '--accent': '#00f0ff', '--accent2': '#ff2d78', '--accent-soft': 'rgba(0,240,255,0.12)',
+      '--surface': 'rgba(8,14,28,0.72)', '--surface2': 'rgba(12,20,38,0.92)',
+      '--border': 'rgba(0,240,255,0.28)', '--border-dim': 'rgba(0,240,255,0.14)',
+      '--font-d': "'Orbitron',sans-serif", '--font-b': "'Share Tech Mono',monospace",
+      '--r-lg': '8px', '--r-md': '6px', '--r-btn': '4px',
+      '--shadow': '0 0 44px rgba(0,240,255,0.14)', '--glow': '0 0 22px rgba(0,240,255,0.55)',
+      '--nav-bg': 'rgba(4,8,16,0.72)',
+      '--title-grad': 'linear-gradient(100deg,#00f0ff,#7aa8ff 45%,#ff2d78)',
+      '--btn-text': '#04060c', '--bf': 'blur(12px)'
+    },
+    particles: { count: 90, colors: ['#00f0ff', '#ff2d78', '#7aa8ff'], links: true, linkColor: '0,240,255', speed: 0.4, rMin: 1, rMax: 2.4, alpha: 0.9, blur: false }
+  },
+  material: {
+    vars: {
+      '--bg': '#141218', '--bg2': '#1d1b22', '--text': '#e6e0e9', '--muted': '#948f9b',
+      '--accent': '#d0bcff', '--accent2': '#efb8c8', '--accent-soft': 'rgba(208,188,255,0.14)',
+      '--surface': 'rgba(33,31,40,0.85)', '--surface2': '#2a2831',
+      '--border': 'rgba(208,188,255,0.3)', '--border-dim': 'rgba(208,188,255,0.14)',
+      '--font-d': "'Roboto',sans-serif", '--font-b': "'Roboto',sans-serif",
+      '--r-lg': '28px', '--r-md': '18px', '--r-btn': '999px',
+      '--shadow': '0 12px 36px rgba(0,0,0,0.4)', '--glow': '0 4px 18px rgba(208,188,255,0.35)',
+      '--nav-bg': 'rgba(20,18,24,0.82)',
+      '--title-grad': 'linear-gradient(100deg,#d0bcff,#efb8c8)',
+      '--btn-text': '#381e72', '--bf': 'blur(18px)'
+    },
+    particles: { count: 34, colors: ['#d0bcff', '#efb8c8', '#8f7fe8'], links: false, speed: 0.22, rMin: 2, rMax: 5, alpha: 0.5, blur: false }
+  },
+  glass: {
+    vars: {
+      '--bg': '#e7edf6', '--bg2': '#f4f8fd', '--text': '#0c1626', '--muted': '#5a6b84',
+      '--accent': '#0a84ff', '--accent2': '#7c5cff', '--accent-soft': 'rgba(10,132,255,0.12)',
+      '--surface': 'rgba(255,255,255,0.5)', '--surface2': 'rgba(255,255,255,0.75)',
+      '--border': 'rgba(255,255,255,0.95)', '--border-dim': 'rgba(120,150,200,0.25)',
+      '--font-d': "'Outfit',sans-serif", '--font-b': "'Outfit',sans-serif",
+      '--r-lg': '30px', '--r-md': '22px', '--r-btn': '999px',
+      '--shadow': '0 20px 50px rgba(30,60,120,0.16)', '--glow': '0 10px 26px rgba(10,132,255,0.35)',
+      '--nav-bg': 'rgba(255,255,255,0.5)',
+      '--title-grad': 'linear-gradient(100deg,#0a84ff,#7c5cff)',
+      '--btn-text': '#ffffff', '--bf': 'blur(22px) saturate(1.5)'
+    },
+    particles: { count: 16, colors: ['10,132,255', '124,92,255', '64,200,255'], links: false, speed: 0.15, rMin: 24, rMax: 70, alpha: 0.14, blur: true }
+  }
+};
+
+class Component extends DCLogic {
+  state = { theme: null };
+
+  rootRef = React.createRef();
+  canvasRef = React.createRef();
+  heroRef = React.createRef();
+  heroArtRef = React.createRef();
+
+  themeKey() {
+    if (this.state.theme) return this.state.theme;
+    const p = String(this.props.theme || 'cyberpunk').toLowerCase();
+    if (p.indexOf('mat') >= 0) return 'material';
+    if (p.indexOf('glass') >= 0) return 'glass';
+    return 'cyber';
+  }
+
+  applyVars(key) {
+    const root = this.rootRef.current;
+    if (!root) return;
+    const vars = THEMES[key].vars;
+    for (const k in vars) root.style.setProperty(k, vars[k]);
+    document.body.style.background = vars['--bg'];
+  }
+
+  onThemeClick = (e) => {
+    const key = e.currentTarget.getAttribute('data-theme');
+    if (!key || !THEMES[key]) return;
+    this.setState({ theme: key });
+    this.applyVars(key);
+    this.seedParticles(key);
+  };
+
+  seedParticles(key) {
+    const canvas = this.canvasRef.current;
+    if (!canvas) return;
+    const cfg = THEMES[key].particles;
+    const n = cfg.count;
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+      parts.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * cfg.speed * 2,
+        vy: (Math.random() - 0.5) * cfg.speed * 2,
+        r: cfg.rMin + Math.random() * (cfg.rMax - cfg.rMin),
+        c: cfg.colors[i % cfg.colors.length],
+        ph: Math.random() * Math.PI * 2
+      });
+    }
+    this.parts = parts;
+  }
+
+  startCanvas() {
+    const canvas = this.canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    this._onResize = resize;
+    window.addEventListener('resize', resize);
+    this.seedParticles(this.themeKey());
+    const particlesOn = this.props.particles !== false;
+    const tick = (t) => {
+      this._raf = requestAnimationFrame(tick);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!particlesOn || !this.parts) return;
+      const key = this.themeKey();
+      const cfg = THEMES[key].particles;
+      const ps = this.parts;
+      for (let i = 0; i < ps.length; i++) {
+        const p = ps[i];
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < -80) p.x = canvas.width + 80; if (p.x > canvas.width + 80) p.x = -80;
+        if (p.y < -80) p.y = canvas.height + 80; if (p.y > canvas.height + 80) p.y = -80;
+        const tw = 0.6 + 0.4 * Math.sin(t / 900 + p.ph);
+        if (cfg.blur) {
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+          g.addColorStop(0, 'rgba(' + p.c + ',' + (cfg.alpha * tw) + ')');
+          g.addColorStop(1, 'rgba(' + p.c + ',0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        } else {
+          ctx.globalAlpha = cfg.alpha * tw;
+          ctx.fillStyle = p.c;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+      if (cfg.links) {
+        for (let i = 0; i < ps.length; i++) {
+          for (let j = i + 1; j < ps.length; j++) {
+            const dx = ps[i].x - ps[j].x, dy = ps[i].y - ps[j].y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < 130 * 130) {
+              const a = 0.14 * (1 - Math.sqrt(d2) / 130);
+              ctx.strokeStyle = 'rgba(' + cfg.linkColor + ',' + a + ')';
+              ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.moveTo(ps[i].x, ps[i].y); ctx.lineTo(ps[j].x, ps[j].y); ctx.stroke();
+            }
+          }
+        }
+      }
+    };
+    this._raf = requestAnimationFrame(tick);
+  }
+
+  setupObservers() {
+    const root = this.rootRef.current;
+    if (!root) return;
+    // scroll reveal
+    const reveals = root.querySelectorAll('[data-reveal]');
+    reveals.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.88) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(42px)';
+      }
+      el.style.transition = (el.style.transition ? el.style.transition + ', ' : '') + 'opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1)';
+    });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.style.opacity = '1';
+          en.target.style.transform = 'translateY(0px)';
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach((el) => io.observe(el));
+    this._io = io;
+    // counters
+    const counters = root.querySelectorAll('[data-count]');
+    const cio = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        cio.unobserve(en.target);
+        const el = en.target;
+        const target = parseInt(el.getAttribute('data-count'), 10);
+        const t0 = performance.now();
+        const dur = 1600;
+        const step = (now) => {
+          const k = Math.min(1, (now - t0) / dur);
+          const ease = 1 - Math.pow(1 - k, 3);
+          el.textContent = String(Math.round(target * ease));
+          if (k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach((el) => cio.observe(el));
+    this._cio = cio;
+    // bars + ring
+    const bars = root.querySelectorAll('[data-bar]');
+    const ring = root.querySelector('[data-ring]');
+    const bio = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        bio.unobserve(en.target);
+        const el = en.target;
+        if (el.hasAttribute('data-bar')) {
+          el.style.width = el.getAttribute('data-bar') + '%';
+        } else {
+          const v = parseInt(el.getAttribute('data-ring'), 10);
+          const c = 741.4;
+          el.style.strokeDashoffset = String(c * (1 - v / 100));
+        }
+      });
+    }, { threshold: 0.4 });
+    bars.forEach((el) => bio.observe(el));
+    if (ring) bio.observe(ring);
+    this._bio = bio;
+  }
+
+  setupTilt() {
+    const root = this.rootRef.current;
+    if (!root) return;
+    root.querySelectorAll('[data-tilt]').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = 'perspective(800px) rotateX(' + (-py * 8) + 'deg) rotateY(' + (px * 10) + 'deg) translateY(-4px)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+      });
+    });
+  }
+
+  setupParallax() {
+    const hero = this.heroRef.current;
+    const art = this.heroArtRef.current;
+    if (!hero || !art) return;
+    hero.addEventListener('mousemove', (e) => {
+      const r = hero.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      art.style.transform = 'translate(' + (px * 26) + 'px,' + (py * 20) + 'px)';
+    });
+    hero.addEventListener('mouseleave', () => {
+      art.style.transform = 'translate(0px,0px)';
+    });
+  }
+
+  componentDidMount() {
+    this.applyVars(this.themeKey());
+    this.startCanvas();
+    this.setupObservers();
+    this.setupTilt();
+    this.setupParallax();
+  }
+
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._io) this._io.disconnect();
+    if (this._cio) this._cio.disconnect();
+    if (this._bio) this._bio.disconnect();
+  }
+
+  renderVals() {
+    const key = this.themeKey();
+    return {
+      rootRef: this.rootRef,
+      canvasRef: this.canvasRef,
+      heroRef: this.heroRef,
+      heroArtRef: this.heroArtRef,
+      onThemeClick: this.onThemeClick,
+      isCyber: key === 'cyber',
+      isMaterial: key === 'material',
+      isGlass: key === 'glass',
+      scanOn: this.props.scanlines !== false
+    };
+  }
+}
+</script>
 </body>
 </html>
