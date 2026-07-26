@@ -1,18 +1,30 @@
+<a id="top"></a>
 <div align="center">
 
-<img src="docs/logo.png" width="450" alt="Vyxel Apps logo"/>
+<img src="docs/logo.png" width="110" height="110" alt="Vyxel Apps logo"/>
 
-# Vyxel Apps
+# VYXEL APPS
 
-**The GitHub-powered Android app store.**
+<img src="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=600&size=20&duration=3000&pause=1200&color=7C5CFF&center=true&vCenter=true&width=680&lines=Multi-source+Android+app+store;GitHub%2C+GitLab%2C+F-Droid%2C+IzzyOnDroid%2C+APKPure+%26+Aptoide;Open+source+%C2%B7+Zero+ads+%C2%B7+Zero+bloat" alt="typing tagline" width="680" height="40"/>
 
-Discover, install, and update Android apps from GitHub releases — free, open-source, no ads, no tracking.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:7C5CFF,100:00D9FF&height=90&section=header&animation=fadeIn" width="100%" height="90" alt="divider"/>
 
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps)](https://github.com/NikhilKain/vyxel-apps/releases)
-[![Stars](https://img.shields.io/github/stars/NikhilKain/vyxel-apps?style=social)](https://github.com/NikhilKain/vyxel-apps/stargazers)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-7C5CFF?style=for-the-badge&labelColor=0d1117)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps?style=for-the-badge&color=7C5CFF&labelColor=0d1117)](https://github.com/NikhilKain/vyxel-apps/releases)
+[![Stars](https://img.shields.io/github/stars/NikhilKain/vyxel-apps?style=for-the-badge&color=7C5CFF&labelColor=0d1117&logo=github&logoColor=white)](https://github.com/NikhilKain/vyxel-apps/stargazers)
+[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7C5CFF?style=for-the-badge&logo=kotlin&logoColor=white&labelColor=0d1117)](https://kotlinlang.org)
+[![Min SDK](https://img.shields.io/badge/API-26+-7C5CFF?style=for-the-badge&labelColor=0d1117)](#)
 
-[**Download APK**](https://github.com/NikhilKain/vyxel-apps/releases/latest) · [**Website**](https://NikhilKain.github.io/vyxel-apps/) · [**Report Bug**](https://github.com/NikhilKain/vyxel-apps/issues)
+[**⬇ Download APK**](https://github.com/NikhilKain/vyxel-apps/releases/latest) &nbsp;·&nbsp; [**🌐 Website**](https://NikhilKain.github.io/vyxel-apps/) &nbsp;·&nbsp; [**🐛 Report Bug**](https://github.com/NikhilKain/vyxel-apps/issues)
+
+<br/>
+
+[![Features](https://img.shields.io/badge/Features-7C5CFF?style=for-the-badge)](#features)
+[![Pro Themes](https://img.shields.io/badge/Pro_Themes-00D9FF?style=for-the-badge)](#liquid-glass-pro)
+[![Screenshots](https://img.shields.io/badge/Screenshots-7C5CFF?style=for-the-badge)](#screenshots)
+[![Install](https://img.shields.io/badge/Install-00D9FF?style=for-the-badge)](#installation)
+[![Tech Stack](https://img.shields.io/badge/Tech_Stack-7C5CFF?style=for-the-badge)](#tech-stack)
+[![Support](https://img.shields.io/badge/Support-00D9FF?style=for-the-badge)](#support)
 
 </div>
 
@@ -23,37 +35,139 @@ Discover, install, and update Android apps from GitHub releases — free, open-s
 > APKs from any other website, Telegram channel, or source are
 > unofficial and may be tampered with. Always verify the signature.
 
+<a id="features"></a>
 ## ✨ Features
 
-- 🔍 **18+ curated categories** — Privacy, Media, Games, Productivity, Dev Tools, and more
-- ⚡ **Smart APK detection** — auto-picks the right architecture for your device
-- 🛡 **Trust Score system** — 0–100 score based on stars, activity, releases, and forks
-- 🔔 **Background update monitoring** — get notified when installed apps have new releases
-- ⚖️ **App comparison mode** — compare two apps side-by-side
-- 📸 **Screenshots from repos** — auto-extracted from README
-- 🔄 **Install history & rollback** — keeps your last 3 versions
-- ⭐ **GitHub starred repos sync** — sync your stars into favourites
-- 🌙 **Material 3 themes** — dark, light, AMOLED, custom accents
+<table>
+<tr>
+<td width="50%" valign="top">
 
+**🔍 6 sources, one store**
+GitHub, GitLab, F-Droid, IzzyOnDroid, APKPure, and Aptoide — scanned and merged into a single feed.
+
+**🗂 17 curated categories**
+Games, Productivity, Security, Dev Tools, Media, Finance and more, plus smart sections like Trending and Newly Launched.
+
+**🛡 Signature verification**
+Every downloaded APK is checked against the installed app's signing certificate before install — a hijacked repo or redirected release can't silently overwrite what's on your phone.
+
+**🥷 Silent installs via Shizuku**
+Skip the system install confirmation screen entirely when Shizuku is running.
+
+**🛡 Trust Score system**
+0–100 score based on stars, activity, releases, and forks.
+
+**🔔 Background update monitoring**
+WorkManager checks installed apps against all six sources and notifies you of updates.
+
+</td>
+<td width="50%" valign="top">
+
+**📱 Home screen widget**
+App of the Day plus your pending update count, refreshed every 30 minutes.
+
+**⚖️ App comparison mode**
+Compare two apps side-by-side.
+
+**📸 Auto-extracted screenshots**
+Pulled straight from each repo's README.
+
+**🔄 Install history & rollback**
+Roll back to a previous version straight from your install history.
+
+**⭐ GitHub starred repos sync**
+Sync your stars into favourites.
+
+**🌍 16 languages**
+English, Hindi, Spanish, French, German, Japanese, Portuguese, Italian, Russian, Chinese, Korean, Arabic, Dutch, Turkish, Polish, Swedish.
+
+**📢 In-app announcements**
+Dismissible banners for giveaways, releases, and community updates.
+
+</td>
+</tr>
+</table>
+
+<a id="liquid-glass-pro"></a>
+## 💎 Liquid Glass Pro <sub>(optional)</sub>
+
+<table>
+<tr><td>
+
+Four premium themes — **Liquid Glass Dark**, **Liquid Glass Light**, **Neon Punk**, and **Cyberpunk** — built on real-time backdrop blur, all unlocked with a single license key. A free 30-second preview is available before you buy.
+
+Vyxel Apps is fully free and open-source without it — this is purely an optional visual pack that helps fund development.
+
+<div align="center">
+
+[![Get Liquid Glass Pro](https://img.shields.io/badge/Get_Liquid_Glass_Pro-7C5CFF?style=for-the-badge&logo=gumroad&logoColor=white&labelColor=0d1117)](https://narzo7.gumroad.com/l/suayy)
+
+</div>
+
+</td></tr>
+</table>
+
+<a id="screenshots"></a>
 ## 📱 Screenshots
 
-| <img src="docs/5.jpeg" width="200"/> | <img src="docs/6.jpeg" width="200"/> | <img src="docs/7.jpeg" width="200"/> | <img src="docs/8.jpeg" width="200"/> | <img src="docs/n3.jpg" width="200"/> | <img src="docs/n5.jpg" width="200"/> | <img src="docs/n1.jpg" width="200"/> | <img src="docs/n4.jpg" width="200"/> | <img src="docs/n2.jpg" width="200"/> |
+<div align="center">
 
+<img src="docs/5.jpeg" width="190" height="422" alt="Home"/> <img src="docs/6.jpeg" width="190" height="422" alt="Apps"/> <img src="docs/7.jpeg" width="190" height="422" alt="Profile"/> <img src="docs/8.jpeg" width="190" height="422" alt="Settings"/>
+
+*Home · Apps · Profile · Settings*
+
+<img src="docs/n3.jpg" width="190" height="422" alt="Screenshot 1"/> <img src="docs/n5.jpg" width="190" height="422" alt="Screenshot 2"/> <img src="docs/n4.jpg" width="190" height="422" alt="Screenshot 3"/> <img src="docs/n2.jpg" width="190" height="422" alt="Screenshot 4"/>
+
+</div>
+
+<a id="installation"></a>
 ## 📥 Installation
 
 1. Download the latest APK from [Releases](https://github.com/NikhilKain/vyxel-apps/releases/latest)
 2. On your Android device: **Settings → Apps → Special access → Install unknown apps** → enable for your browser/file manager
 3. Tap the downloaded APK to install
 
-## 🛠 Built With
+> 💡 Optional: install [Shizuku](https://shizuku.rikka.app/) for silent, confirmation-free installs of every app you update through Vyxel Apps.
 
-- [Kotlin](https://kotlinlang.org/)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [Material 3](https://m3.material.io/)
-- [Retrofit](https://square.github.io/retrofit/) — GitHub API client
+<details>
+<summary><b>🔧 Building from Source</b></summary>
+<br/>
+
+```bash
+git clone https://github.com/NikhilKain/vyxel-apps.git
+cd vyxel-apps
+```
+
+Open the project in Android Studio (JDK 17, compileSdk 37, targetSdk 36, minSdk 26). It will build and run out of the box — the following `local.properties` keys are all **optional** and only needed to reproduce specific production behavior:
+
+| Key | Purpose | If omitted |
+|---|---|---|
+| `signing.storeFile` / `storePassword` / `keyAlias` / `keyPassword` | Release signing | Unsigned release APK |
+| `gumroad.product.id` | Liquid Glass Pro license verification | Verification disabled — Pro themes stay locked |
+| `lg.hmac.secret` / `lg.script.url` | Liquid Glass license signing endpoint | N/A in forks |
+
+Everything else — the six-source scanner, Trust Score, comparison mode, widget, and free themes — works fully without any secrets configured.
+
+</details>
+
+<a id="tech-stack"></a>
+## 🛠 Tech Stack
+
+<div align="center">
+
+<img src="https://skillicons.dev/icons?i=kotlin,androidstudio,git,github,gradle" alt="tech icons"/>
+
+</div>
+
+- [Kotlin](https://kotlinlang.org/) + [Jetpack Compose](https://developer.android.com/jetpack/compose) + [Material 3](https://m3.material.io/)
+- [Retrofit](https://square.github.io/retrofit/) + [OkHttp](https://square.github.io/okhttp/) — GitHub / GitLab / F-Droid / IzzyOnDroid / APKPure / Aptoide clients
 - [Coil](https://coil-kt.github.io/coil/) — image loading
 - [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) — background update checks
+- [Shizuku](https://shizuku.rikka.app/) — silent installs without root
+- [AndroidX Security Crypto](https://developer.android.com/jetpack/androidx/releases/security) — encrypted storage for tokens and license keys
+- [Backdrop](https://github.com/Kyant0/Backdrop) — real-time blur for the Liquid Glass Pro themes
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 Contributions are welcome! Open an issue first to discuss what you'd like to change.
@@ -64,46 +178,44 @@ Contributions are welcome! Open an issue first to discuss what you'd like to cha
 4. Push to the branch (`git push origin feature/cool-thing`)
 5. Open a Pull Request
 
+<a id="support"></a>
 ## 💖 Support
 
 If Vyxel Apps is useful to you:
 - ⭐ Star this repo
+- 💎 Grab [Liquid Glass Pro](https://narzo7.gumroad.com/l/suayy) — it's the main thing that funds ongoing development
 - 🐦 Share with your friends
 - 🐛 Report bugs in [Issues](https://github.com/NikhilKain/vyxel-apps/issues)
 - 📝 Send feedback via the in-app feedback button
 
-## App Support 
+**App Support:** https://t.me/vyxelapps/1
 
- - https://t.me/vyxelapps
+### ☕ Buy Me a Coffee
+
+Hey! 👋 I'm Nikhil, an indie Android developer building this project in my free time — making apps from GitHub, GitLab, F-Droid, and other developer-first sources easier to discover, install, and manage on Android, while keeping everything open, fast, and user-friendly.
+
+Every contribution goes directly toward new features, bug fixes, performance improvements, and long-term development.
+
+<div align="center">
+
+[![Buy Me a Coffee](https://img.shields.io/badge/☕_Buy_Me_a_Coffee-Support_Development-7C5CFF?style=for-the-badge&labelColor=0d1117)](https://narzo7.gumroad.com/l/nhlevz)
+
+*Thank you for supporting independent open-source development ❤️*
+
+</div>
 
 ## 📄 License
 
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-7C5CFF?style=for-the-badge&labelColor=0d1117)](LICENSE)
 
-
-## ☕ Support the Project
-
-Hey! 👋 I'm Nikhil, an indie Android developer building this project in my free time.
-
-My goal is to make GitHub apps easier to discover, install, and manage on Android while keeping everything open, fast, and user-friendly.
-
-If this project has been useful to you, or you'd like to support future development, you can help by buying me a coffee. Every contribution goes directly toward:
-
-🚀 New features
-🐞 Bug fixes & maintenance
-⚡ Performance improvements
-💡 Long-term development
-❤️ Support
-
-<p align="center"> <a href="https://narzo7.gumroad.com/l/nhlevz"> <img src="https://img.shields.io/badge/☕%20Buy%20Me%20a%20Coffee-Support%20Development-FF813F?style=for-the-badge" alt="Support Development"> </a> </p>
-
-<p align="center"> <strong>👉 https://narzo7.gumroad.com/l/nhlevz 👈</strong> </p>
-
-<p align="center"> Thank you for supporting independent open-source development! ❤️ </p>
-
----
+<br/>
 
 <div align="center">
-Built with ❤️ for the open-source community.
-</div>
 
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00D9FF,100:7C5CFF&height=90&section=footer" width="100%" height="90" alt="divider"/>
+
+Built with ❤️ for the open-source community.
+
+[⬆ Back to top](#top)
+
+</div>
