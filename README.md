@@ -5,26 +5,26 @@
 
 # VYXEL APPS
 
-<img src="https://readme-typing-svg.demolab.com/?font=JetBrains+Mono&weight=600&size=20&duration=3000&pause=1200&color=7C5CFF&center=true&vCenter=true&width=680&lines=Multi-source+Android+app+store;GitHub%2C+GitLab%2C+F-Droid%2C+IzzyOnDroid%2C+APKPure+%26+Aptoide;Open+source+%C2%B7+Zero+ads+%C2%B7+Zero+bloat" alt="typing tagline" width="680" height="40"/>
+<img src="https://readme-typing-svg.demolab.com/?font=Orbitron&weight=700&size=20&duration=3000&pause=1200&color=00F0FF&center=true&vCenter=true&width=680&lines=Multi-source+Android+app+store;GitHub%2C+GitLab%2C+F-Droid%2C+IzzyOnDroid%2C+APKPure+%26+Aptoide;Open+source+%C2%B7+Zero+ads+%C2%B7+Zero+bloat" alt="typing tagline" width="680" height="40"/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:7C5CFF,100:00D9FF&height=90&section=header&animation=fadeIn" width="100%" height="90" alt="divider"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00F0FF,50:7AA8FF,100:FF2D78&height=90&section=header&animation=fadeIn" width="100%" height="90" alt="divider"/>
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0-7C5CFF?style=for-the-badge&labelColor=0d1117)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps?style=for-the-badge&color=7C5CFF&labelColor=0d1117)](https://github.com/NikhilKain/vyxel-apps/releases)
-[![Stars](https://img.shields.io/github/stars/NikhilKain/vyxel-apps?style=for-the-badge&color=7C5CFF&labelColor=0d1117&logo=github&logoColor=white)](https://github.com/NikhilKain/vyxel-apps/stargazers)
-[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7C5CFF?style=for-the-badge&logo=kotlin&logoColor=white&labelColor=0d1117)](https://kotlinlang.org)
-[![Min SDK](https://img.shields.io/badge/API-26+-7C5CFF?style=for-the-badge&labelColor=0d1117)](#)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-FF2D78?style=for-the-badge&labelColor=000000)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps?style=for-the-badge&color=00F0FF&labelColor=000000)](https://github.com/NikhilKain/vyxel-apps/releases)
+[![Stars](https://img.shields.io/github/stars/NikhilKain/vyxel-apps?style=for-the-badge&color=FF2D78&labelColor=000000&logo=github&logoColor=00F0FF)](https://github.com/NikhilKain/vyxel-apps/stargazers)
+[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-00F0FF?style=for-the-badge&logo=kotlin&logoColor=black&labelColor=000000)](https://kotlinlang.org)
+[![Min SDK](https://img.shields.io/badge/API-26+-FF2D78?style=for-the-badge&labelColor=000000)](#)
 
 [**⬇ Download APK**](https://github.com/NikhilKain/vyxel-apps/releases/latest) &nbsp;·&nbsp; [**🌐 Website**](https://NikhilKain.github.io/vyxel-apps/) &nbsp;·&nbsp; [**🐛 Report Bug**](https://github.com/NikhilKain/vyxel-apps/issues)
 
 <br/>
 
-[![Features](https://img.shields.io/badge/Features-7C5CFF?style=for-the-badge)](#features)
-[![Pro Themes](https://img.shields.io/badge/Pro_Themes-00D9FF?style=for-the-badge)](#liquid-glass-pro)
-[![Screenshots](https://img.shields.io/badge/Screenshots-7C5CFF?style=for-the-badge)](#screenshots)
-[![Install](https://img.shields.io/badge/Install-00D9FF?style=for-the-badge)](#installation)
-[![Tech Stack](https://img.shields.io/badge/Tech_Stack-7C5CFF?style=for-the-badge)](#tech-stack)
-[![Support](https://img.shields.io/badge/Support-00D9FF?style=for-the-badge)](#support)
+[![Features](https://img.shields.io/badge/Features-00F0FF?style=for-the-badge&labelColor=000000&logoColor=black)](#features)
+[![Pro Themes](https://img.shields.io/badge/Pro_Themes-FF2D78?style=for-the-badge&labelColor=000000)](#liquid-glass-pro)
+[![Screenshots](https://img.shields.io/badge/Screenshots-00F0FF?style=for-the-badge&labelColor=000000)](#screenshots)
+[![Install](https://img.shields.io/badge/Install-FF2D78?style=for-the-badge&labelColor=000000)](#installation)
+[![Tech Stack](https://img.shields.io/badge/Tech_Stack-00F0FF?style=for-the-badge&labelColor=000000)](#tech-stack)
+[![Support](https://img.shields.io/badge/Support-FF2D78?style=for-the-badge&labelColor=000000)](#support)
 
 </div>
 
@@ -94,13 +94,13 @@ Dismissible banners for giveaways, releases, and community updates.
 <table>
 <tr><td>
 
-Four premium themes — **Liquid Glass Dark**, **Liquid Glass Light**, **Neon Punk**, and **Cyberpunk** — built on real-time backdrop blur, all unlocked with a single license key. A free 30-second preview is available before you buy.
+Four premium themes — **Liquid Glass Dark**, **Liquid Glass Light**, **Neon Punk**, and **Cyberpunk** *(the one you're looking at right now)* — built on real-time backdrop blur, all unlocked with a single license key. A free 30-second preview is available before you buy.
 
 Vyxel Apps is fully free and open-source without it — this is purely an optional visual pack that helps fund development.
 
 <div align="center">
 
-[![Get Liquid Glass Pro](https://img.shields.io/badge/Get_Liquid_Glass_Pro-7C5CFF?style=for-the-badge&logo=gumroad&logoColor=white&labelColor=0d1117)](https://narzo7.gumroad.com/l/suayy)
+[![Get Liquid Glass Pro](https://img.shields.io/badge/Get_Liquid_Glass_Pro-00F0FF?style=for-the-badge&logo=gumroad&logoColor=black&labelColor=000000)](https://narzo7.gumroad.com/l/suayy)
 
 </div>
 
@@ -155,7 +155,7 @@ Everything else — the six-source scanner, Trust Score, comparison mode, widget
 
 <div align="center">
 
-<img src="https://skillicons.dev/icons?i=kotlin,androidstudio,git,github,gradle" alt="tech icons"/>
+<img src="https://skillicons.dev/icons?i=kotlin,androidstudio,git,github,gradle&theme=dark" alt="tech icons"/>
 
 </div>
 
@@ -198,7 +198,7 @@ Every contribution goes directly toward new features, bug fixes, performance imp
 
 <div align="center">
 
-[![Buy Me a Coffee](https://img.shields.io/badge/☕_Buy_Me_a_Coffee-Support_Development-7C5CFF?style=for-the-badge&labelColor=0d1117)](https://narzo7.gumroad.com/l/nhlevz)
+[![Buy Me a Coffee](https://img.shields.io/badge/☕_Buy_Me_a_Coffee-Support_Development-00F0FF?style=for-the-badge&labelColor=000000)](https://narzo7.gumroad.com/l/nhlevz)
 
 *Thank you for supporting independent open-source development ❤️*
 
@@ -206,13 +206,13 @@ Every contribution goes directly toward new features, bug fixes, performance imp
 
 ## 📄 License
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0-7C5CFF?style=for-the-badge&labelColor=0d1117)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-FF2D78?style=for-the-badge&labelColor=000000)](LICENSE)
 
 <br/>
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00D9FF,100:7C5CFF&height=90&section=footer" width="100%" height="90" alt="divider"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:FF2D78,50:7AA8FF,100:00F0FF&height=90&section=footer" width="100%" height="90" alt="divider"/>
 
 Built with ❤️ for the open-source community.
 
