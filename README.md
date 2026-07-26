@@ -1,7 +1,7 @@
 <a id="top"></a>
 <div align="center">
 
-<img src="docs/logo.png" width="110" height="110" alt="Vyxel Apps logo"/>
+<img src="docs/logo.png" width="410" height="410" alt="Vyxel Apps logo"/>
 
 # VYXEL APPS
 
