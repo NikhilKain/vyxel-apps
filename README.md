@@ -112,6 +112,10 @@ Vyxel Apps is fully free and open-source without it — this is purely an option
 
 <div align="center">
 
+<img src="docs/e1.jpg" width="190" height="422" alt="sc1"/> <img src="docs/e2.jpg" width="190" height="422" alt="sc2"/> <img src="docs/e3.jpg" width="190" height="422" alt="sc3"/> <img src="docs/e4.jpg" width="190" height="422" alt="sc4"/>
+
+*Home ·*
+
 <img src="docs/c1.png" width="190" height="422" alt="sc1"/> <img src="docs/c2.png" width="190" height="422" alt="sc2"/> <img src="docs/c4.png" width="190" height="422" alt="sc3"/> <img src="docs/c5.png" width="190" height="422" alt="sc4"/>
 
 *Home · Apps · Profile · Settings*
