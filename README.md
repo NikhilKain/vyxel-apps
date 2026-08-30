@@ -42,8 +42,8 @@
 <tr>
 <td width="50%" valign="top">
 
-**🔍 6 sources, one store**
-GitHub, GitLab, F-Droid, IzzyOnDroid, APKPure, and Aptoide — scanned and merged into a single feed.
+**🔍 14 sources, one store**
+GitHub, GitLab, Codeberg, F-Droid, IzzyOnDroid, Aptoide, Aurora OSS, APKPure, Flathub and WinGet, plus four root-module repositories — scanned and merged into a single feed.
 
 **🗂 17 curated categories**
 Games, Productivity, Security, Dev Tools, Media, Finance and more, plus smart sections like Trending and Newly Launched.
@@ -88,6 +88,43 @@ Dismissible banners for giveaways, releases, and community updates.
 </tr>
 </table>
 
+<a id="open-core"></a>
+## 🧩 Open core
+
+Vyxel Apps is **open core**. Everything that makes it an app store is open source under
+AGPL-3.0; a small optional visual pack is not.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**✅ Open source**
+
+- All 14 sources and the search, ranking and merge engine
+- Downloads, signature verification, Shizuku installs
+- Update scanning, rollback and install history
+- The Modules screen (Magisk, Zygisk, LSPosed, KernelSU)
+- Both interfaces — Classic and Expressive
+- Trust Score, comparison, backup/restore
+- 16 languages
+
+</td>
+<td width="50%" valign="top">
+
+**💎 Paid build only**
+
+- The four **Liquid Glass Pro** themes and their real-time blur rendering
+- The licence verification and entitlement service
+
+</td>
+</tr>
+</table>
+
+No feature that affects finding, installing, updating or removing an app is behind the
+paywall. The paid part is cosmetic, and it is what funds the rest.
+
+Source for the open core is published per release: **[`opencore-vyxel-v1.1.0`](https://github.com/NikhilKain/vyxel-apps/releases/latest)**.
+
 <a id="liquid-glass-pro"></a>
 ## 💎 Liquid Glass Pro <sub>(optional)</sub>
 
@@ -96,7 +133,7 @@ Dismissible banners for giveaways, releases, and community updates.
 
 Four premium themes — **Liquid Glass Dark**, **Liquid Glass Light**, **Neon Punk**, and **Cyberpunk** *(the one you're looking at right now)* — built on real-time backdrop blur, all unlocked with a single license key. A free 30-second preview is available before you buy.
 
-Vyxel Apps is fully free and open-source without it — this is purely an optional visual pack that helps fund development.
+The app is fully usable without it — see [Open core](#open-core) above for exactly what is and isn't included.
 
 <div align="center">
 
