@@ -123,7 +123,8 @@ AGPL-3.0; a small optional visual pack is not.
 No feature that affects finding, installing, updating or removing an app is behind the
 paywall. The paid part is cosmetic, and it is what funds the rest.
 
-Source for the open core is published per release: **[`opencore-vyxel-v1.1.0`](https://github.com/NikhilKain/vyxel-apps/releases/latest)**.
+The open core is this repository. Grab the **Source code** archive attached to any
+[release](https://github.com/NikhilKain/vyxel-apps/releases), or clone `main`.
 
 <a id="liquid-glass-pro"></a>
 ## 💎 Liquid Glass Pro <sub>(optional)</sub>
