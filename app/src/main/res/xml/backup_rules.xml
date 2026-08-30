@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules (Android 11 / API 30 and below).
+
+  Excluded:
+  * vyxel_prefs  — theme/settings must NOT restore on reinstall (also keeps the
+                   locked-theme guard's inputs out of a restored install).
+  * vyxel_secure — EncryptedSharedPreferences. Its master key lives in the
+                   AndroidKeyStore and is never backed up, so a restored blob is
+                   undecryptable; better to have the user re-enter the token.
+  * *_cache      — pure caches, no reason to spend the user's backup quota.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="vyxel_prefs.xml" />
+    <exclude domain="sharedpref" path="vyxel_secure.xml" />
+    <exclude domain="sharedpref" path="gh_search_cache.xml" />
+    <exclude domain="sharedpref" path="metadata_cache.xml" />
+    <exclude domain="sharedpref" path="apk_presence.xml" />
+</full-backup-content>

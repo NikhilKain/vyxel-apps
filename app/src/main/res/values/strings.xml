@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Vyxel Apps</string>
+    <string name="widget_app_of_day">✨ APP OF THE DAY</string>
+    <string name="widget_description">App of the Day and pending update count at a glance</string>
+    <string name="widget_up_to_date">✓ All apps up to date</string>
+    <string name="widget_updates_pending">%1$d update(s) pending — tap to update</string>
 </resources>

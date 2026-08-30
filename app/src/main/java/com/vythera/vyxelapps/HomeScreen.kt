@@ -1,8 +1,11 @@
 package com.vythera.vyxelapps
 
-import android.os.Build
+import android.graphics.Color as AndroidColor
 import androidx.compose.animation.slideInHorizontally
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import android.widget.Toast
@@ -12,6 +15,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.EaseOutQuart
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
@@ -19,12 +27,19 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -35,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -67,91 +83,124 @@ private const val Q_COOKING      = "topic:android cooking food recipe stars:>50"
 @Composable
 fun HomeScreen(viewModel: AppViewModel = viewModel()) {
 
-    val state = viewModel.state   // ← must be FIRST
+    val rawState = viewModel.state   // ← must be FIRST
+
+    /**
+     * The catalogue with hidden apps removed, once, before anything reads it.
+     *
+     * Filtering here rather than at each of the dozen render sites means a source
+     * added later cannot forget to honour the hidden list — the screens below never
+     * see a hidden entry at all. The detail page is deliberately still reachable
+     * (it is opened from an object already in hand), which is what makes "Unhide"
+     * possible without a separate management screen.
+     */
+    val state = remember(rawState) {
+        val hidden = rawState.hiddenPackages
+        if (hidden.isEmpty()) rawState
+        else rawState.copy(
+            trending = rawState.trending.withoutHidden(hidden),
+            gitlabApps = rawState.gitlabApps.withoutHidden(hidden),
+            codebergApps = rawState.codebergApps.withoutHidden(hidden),
+            fdroidApps = rawState.fdroidApps.withoutHidden(hidden),
+            izzyApps = rawState.izzyApps.withoutHidden(hidden),
+            flathubApps = rawState.flathubApps.withoutHidden(hidden),
+            wingetApps = rawState.wingetApps.withoutHidden(hidden),
+            searchResults = rawState.searchResults.withoutHidden(hidden),
+            recommendations = rawState.recommendations.withoutHidden(hidden),
+            seeAllApps = rawState.seeAllApps.withoutHidden(hidden),
+            platformApps = rawState.platformApps.withoutHidden(hidden),
+        )
+    }
 
     val view         = LocalView.current
     val context      = LocalContext.current
     val isSystemDark = isSystemInDarkTheme()
     val homeListState = rememberLazyListState()
 
-    var selectedTab   by remember { mutableStateOf(VAppTab.HOME) }
-    var selectedRepo  by remember { mutableStateOf<GitHubRepo?>(null) }
-    var showSeeAll    by remember { mutableStateOf(false) }
-    var showCompare by remember { mutableStateOf(false) }
-    var lastBackPress by remember { mutableLongStateOf(0L) }
-    var dockVisible   by remember { mutableStateOf(true) }
+    // Scroll states hoisted here so positions survive DETAIL navigation — the
+    // AnimatedContent below disposes these screens while a detail is open.
+    // SeeAll: keyed on the browse target, so opening a different list starts at
+    // the top while returning from a detail restores the old position.
+    val seeAllListState    = remember(state.seeAllTitle, state.seeAllQuery, state.seeAllSource) { LazyListState() }
+    val searchGridState    = remember { LazyGridState() }
+    val searchBentoPattern = rememberBentoPattern()
+    val searchScrollKey    = remember { mutableStateOf("") }
+
+    var selectedTab        by remember { mutableStateOf(VAppTab.HOME) }
+    var selectedRepo       by remember { mutableStateOf<GitHubRepo?>(null) }
+    var showSeeAll         by remember { mutableStateOf(false) }
+    var showCompare        by remember { mutableStateOf(false) }
+    var lastBackPress      by remember { mutableLongStateOf(0L) }
+    var dockVisible        by remember { mutableStateOf(true) }
+    var settingsNav        by remember { mutableStateOf("MAIN") }
+    var showTrackApp        by remember { mutableStateOf(false) }
+    var showModules         by remember { mutableStateOf(false) }
+    var showTrackRepoSearch by remember { mutableStateOf(false) }
+    var showEnterManually   by remember { mutableStateOf(false) }
+    var trackPrefilledPkg   by remember { mutableStateOf("") }
+    var trackPrefilledName  by remember { mutableStateOf("") }
 
     // ── Theme ─────────────────────────────────────────────────────────────
+    val isLiquidGlass = state.settings.themeMode == "Liquid Glass Dark" ||
+                        state.settings.themeMode == "Liquid Glass Light" ||
+                        state.settings.themeMode == NEON_PUNK_MODE       // NEON-PUNK (glass variant)
+
+    // CYBERPUNK: keep the HUD dock pinned like the glass themes — it must not
+    // slide away on scroll (see the AnimatedVisibility gate below).
+    val isCyberpunkTheme = state.settings.themeMode == CYBERPUNK_MODE
+
     val baseTheme: AppThemeColors = when {
-        state.settings.themeMode == "Custom" -> state.customTheme.toAppThemeColors()
-        state.settings.themeMode == "AMOLED" -> AmoledTheme
-        state.settings.amoledBlack           -> AmoledTheme
-        state.settings.themeMode == "Light"  -> LightTheme
-        state.settings.themeMode == "Dark"   -> DarkTheme
-        state.settings.themeMode == "Minimal"-> MinimalTheme
-        state.settings.themeMode == "Sunset" -> SunsetTheme
-        state.settings.themeMode == "System" -> if (isSystemDark) DarkTheme else LightTheme
-        else                                  -> DarkTheme
+        state.settings.themeMode == CYBERPUNK_MODE       -> CyberpunkTheme   // CYBERPUNK
+        state.settings.themeMode == "Dynamic"            ->
+            if (android.os.Build.VERSION.SDK_INT >= 31)
+                dynamicAppThemeColors(context, isSystemDark)
+            else if (isSystemDark) DarkTheme else LightTheme
+        state.settings.themeMode == "Custom"             -> state.customTheme.toAppThemeColors()
+        state.settings.themeMode == "AMOLED"             -> AmoledTheme
+        state.settings.amoledBlack                       -> AmoledTheme
+        state.settings.themeMode == "Light"              -> LightTheme
+        state.settings.themeMode == "Dark"               -> DarkTheme
+        state.settings.themeMode == "Minimal"            -> MinimalTheme
+        state.settings.themeMode == "Sunset"             -> SunsetTheme
+        state.settings.themeMode == "Liquid Glass Dark"  -> LiquidGlassDarkTheme
+        state.settings.themeMode == "Liquid Glass Light" -> LiquidGlassLightTheme
+        state.settings.themeMode == NEON_PUNK_MODE       -> NeonPunkTheme   // NEON-PUNK
+        state.settings.themeMode == "System"             -> if (isSystemDark) DarkTheme else LightTheme
+        else                                              -> DarkTheme
     }
 
-    // ── Full Monet palette extraction (Android 12+) ───────────────────
-    // Each theme uses M3-correct tone mappings so Monet plays a structural
-    // role (not just accent tinting).
-    val monetPalette: Map<String, Color?> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        remember(view) {
-            val ctx = view.context
-            fun safe(id: Int): Color? = try {
-                Color(ctx.resources.getColor(id, ctx.theme))
-            } catch (_: Exception) { null }
-            mapOf(
-                "a1_100" to safe(android.R.color.system_accent1_100),
-                "a1_200" to safe(android.R.color.system_accent1_200),
-                "a1_300" to safe(android.R.color.system_accent1_300),
-                "a1_600" to safe(android.R.color.system_accent1_600),
-                "a1_700" to safe(android.R.color.system_accent1_700),
-                "a1_900" to safe(android.R.color.system_accent1_900),
-                "a2_200" to safe(android.R.color.system_accent2_200),
-                "a2_600" to safe(android.R.color.system_accent2_600),
-                "a3_100" to safe(android.R.color.system_accent3_100),
-                "a3_200" to safe(android.R.color.system_accent3_200),
-                "a3_600" to safe(android.R.color.system_accent3_600),
-                "a3_700" to safe(android.R.color.system_accent3_700),
-                "n1_50"  to safe(android.R.color.system_neutral1_50),
-                "n1_100" to safe(android.R.color.system_neutral1_100),
-                "n1_800" to safe(android.R.color.system_neutral1_800),
-                "n1_900" to safe(android.R.color.system_neutral1_900),
-            )
-        }
-    } else emptyMap()
-
-    val useMonetEffective = state.useMonet ||
-        (state.settings.followSystemMonet && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-
     val theme: AppThemeColors = run {
+        // NEON-PUNK / CYBERPUNK: fixed accent — the user accent override doesn't apply
+        if (baseTheme.isNeonPunk() || baseTheme.isCyberpunk()) return@run baseTheme
         val manualAccent = state.accentColor
-        if (useMonetEffective && monetPalette.isNotEmpty()) {
-            val dark = baseTheme.isDark
-            val primary   = manualAccent ?: if (dark) monetPalette["a1_200"] else monetPalette["a1_600"]
-            val secondary = if (dark) monetPalette["a2_200"] else monetPalette["a2_600"]
-            val tertiary  = if (dark) monetPalette["a3_200"] else monetPalette["a3_600"]
-            val tertiaryContainer = if (dark) monetPalette["a3_700"] else monetPalette["a3_100"]
-            val container  = if (dark) monetPalette["a1_700"] else monetPalette["a1_100"]
-            val onContainer= if (dark) monetPalette["a1_100"] else monetPalette["a1_900"]
+        val eff = manualAccent ?: baseTheme.accent
+        if (manualAccent != null) {
+            val hsv = FloatArray(3)
+            android.graphics.Color.colorToHSV(
+                android.graphics.Color.rgb(
+                    (eff.red   * 255).toInt(),
+                    (eff.green * 255).toInt(),
+                    (eff.blue  * 255).toInt()
+                ), hsv
+            )
+            val h = hsv[0]; val s = hsv[1]; val v = hsv[2]
+            val alt = Color(android.graphics.Color.HSVToColor(floatArrayOf(
+                (h + 35f) % 360f, (s * 0.85f).coerceIn(0f, 1f), v
+            )))
+            val tertiary = Color(android.graphics.Color.HSVToColor(floatArrayOf(
+                (h + 70f) % 360f, (s * 0.75f).coerceIn(0f, 1f), (v * 0.90f).coerceIn(0f, 1f)
+            )))
+            val container = Color(android.graphics.Color.HSVToColor(floatArrayOf(
+                h, (s * 0.50f).coerceIn(0f, 1f), (v * 0.55f).coerceIn(0f, 1f)
+            )))
             baseTheme.copy(
-                accent                  = primary               ?: baseTheme.accent,
-                accentAlt               = secondary             ?: baseTheme.accentAlt,
-                accentContainer         = container             ?: baseTheme.accentContainer,
-                onAccentContainer       = onContainer           ?: baseTheme.onAccentContainer,
-                accentTertiary          = tertiary              ?: baseTheme.accentTertiary,
-                accentTertiaryContainer = tertiaryContainer     ?: baseTheme.accentTertiaryContainer,
-                dockForeground          = (primary              ?: baseTheme.accent),
-                bgPrimary               = (if (dark) monetPalette["n1_900"] else monetPalette["n1_50"])  ?: baseTheme.bgPrimary,
-                bgSurface               = (if (dark) monetPalette["n1_900"] else monetPalette["n1_100"]) ?: baseTheme.bgSurface,
-                bgSurfaceAlt            = (if (dark) monetPalette["n1_800"] else monetPalette["n1_100"]) ?: baseTheme.bgSurfaceAlt,
-                bgSurfaceHigh           = (if (dark) monetPalette["n1_800"] else monetPalette["n1_100"]) ?: baseTheme.bgSurfaceHigh
+                accent          = eff,
+                dockForeground  = eff,
+                accentAlt       = alt,
+                accentTertiary  = tertiary,
+                accentContainer = container
             )
         } else {
-            val eff = manualAccent ?: baseTheme.accent
             baseTheme.copy(accent = eff, dockForeground = eff)
         }
     }
@@ -173,13 +222,32 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
         }
     }
 
-    val installedSet = remember(state.installStates) {
-        state.installStates.filter { e -> e.value.isInstalled }.keys
+    // Reading the snapshot map here subscribes to it directly — no remember() key
+    // needed, and unrelated UiState changes no longer invalidate it.
+    val installedSet = viewModel.installStates
+        .filterValues { it.isInstalled }
+        .keys
+
+    // Preloaded multi-source apps, so a source chip in Search works even before
+    // the user types anything. GitHub repos load with source=null (Gson drops the
+    // Kotlin default), so normalize them here to match the chip's AppSource.GITHUB.
+    val searchSourcePool = remember(
+        state.trending, state.gitlabApps, state.codebergApps,
+        state.fdroidApps, state.izzyApps, state.flathubApps, state.wingetApps
+    ) {
+        (state.trending + state.gitlabApps + state.codebergApps +
+            state.fdroidApps + state.izzyApps + state.flathubApps + state.wingetApps)
+            .map { if (it.source == null) it.copy(source = AppSource.GITHUB) else it }
+            .distinctBy { it.id }
     }
 
     // ── Back ──────────────────────────────────────────────────────────────
     BackHandler {
         when {
+            showEnterManually -> { showEnterManually = false }
+            showTrackRepoSearch -> { showTrackRepoSearch = false; viewModel.clearTrackSearch() }
+            showTrackApp -> showTrackApp = false
+            showModules -> showModules = false
             showCompare -> { showCompare = false; viewModel.setCompareTarget(null) }
             selectedRepo != null -> {
                 viewModel.refreshInstall(selectedRepo!!.id)
@@ -216,7 +284,48 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
         }
     }
 
-    CompositionLocalProvider(LocalTheme provides theme, LocalStrings provides stringsForLanguage(state.settings.language)) {
+    val glassBackdrop = rememberLayerBackdrop { drawContent() }
+    val bgBackdrop    = rememberLayerBackdrop { drawContent() }
+
+    // CYBERPUNK: one shared clock (seconds) drives cheap draw-phase name glitches
+    val cyberClock = if (state.settings.themeMode == CYBERPUNK_MODE && state.settings.cyberpunkEffects) {
+        val tr = rememberInfiniteTransition(label = "cyberClk")
+        tr.animateFloat(0f, 300f, infiniteRepeatable(tween(300_000, easing = LinearEasing), RepeatMode.Restart), label = "cyberClk")
+    } else null
+
+    CompositionLocalProvider(
+        LocalTheme provides theme,
+        LocalApkAbsentIds provides state.apkAbsentIds,
+        LocalStrings provides stringsForLanguage(state.settings.language),
+        LocalCyberpunkFx provides state.settings.cyberpunkEffects,   // CYBERPUNK
+        LocalCyberClock provides cyberClock,                         // CYBERPUNK
+        LocalIsLiquidGlass provides isLiquidGlass,
+        LocalGlassBackdrop     provides if (isLiquidGlass) glassBackdrop else null,
+        LocalGlassBgBackdrop   provides if (isLiquidGlass) bgBackdrop    else null,
+        LocalGlassWallpaperUri     provides if (isLiquidGlass) state.settings.liquidGlassWallpaperUri     else "",
+        // NEON-PUNK: fixed tuned glass values; other glass themes stay user-adjustable
+        LocalGlassBlur             provides when {
+            !isLiquidGlass                                 -> 10f
+            state.settings.themeMode == NEON_PUNK_MODE     -> NP_GLASS_BLUR
+            else                                           -> state.settings.liquidGlassBlur
+        },
+        LocalGlassEdgeIntensity    provides when {
+            !isLiquidGlass                                 -> 1f
+            state.settings.themeMode == NEON_PUNK_MODE     -> NP_GLASS_EDGE
+            else                                           -> state.settings.liquidGlassEdge
+        },
+        LocalGlassRefraction       provides when {
+            !isLiquidGlass                                 -> 1f
+            state.settings.themeMode == NEON_PUNK_MODE     -> NP_GLASS_REFRACTION
+            else                                           -> state.settings.liquidGlassRefraction
+        },
+        LocalGlassNavBlur          provides if (isLiquidGlass) state.settings.liquidGlassNavBlur      else 10f,
+        LocalGlassNavEdgeIntensity provides if (isLiquidGlass) state.settings.liquidGlassNavEdge      else 1f,
+        LocalGlassNavRefraction    provides if (isLiquidGlass) state.settings.liquidGlassNavRefraction else 1f,
+        LocalGlassNavTextColor     provides if (isLiquidGlass && state.settings.liquidGlassNavTextColor.isNotEmpty()) {
+            runCatching { Color(AndroidColor.parseColor(state.settings.liquidGlassNavTextColor)) }.getOrNull()
+        } else null
+    ) {
         val m3Colors = if (theme.isDark) darkColorScheme(
             primary              = theme.accent,
             primaryContainer     = theme.accentContainer,
@@ -251,9 +360,11 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
             outlineVariant       = theme.borderVariant
         )
 
-        MaterialTheme(
-            colorScheme = m3Colors,
-            typography  = MaterialTheme.typography.run {
+        // CYBERPUNK: sharp shapes + Orbitron/mono typography override the user's
+        // font choice; every other theme keeps the fontFamily-based typography.
+        val isCyberpunk = state.settings.themeMode == CYBERPUNK_MODE
+        val m3Typography = if (isCyberpunk) cyberpunkTypography(MaterialTheme.typography)
+        else MaterialTheme.typography.run {
                 copy(
                     displayLarge   = displayLarge.copy(fontFamily   = fontFamily),
                     displayMedium  = displayMedium.copy(fontFamily  = fontFamily),
@@ -272,15 +383,41 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                     labelSmall     = labelSmall.copy(fontFamily     = fontFamily)
                 )
             }
+        MaterialTheme(
+            colorScheme = m3Colors,
+            shapes      = if (isCyberpunk) CyberpunkShapes else MaterialTheme.shapes,   // CYBERPUNK
+            typography  = m3Typography
         ) {
             // Hoist screen state so bottomBar can read it
             var lastRepo by remember { mutableStateOf<GitHubRepo?>(null) }
+
+            // ── CDN announcement (announcement.json) — shown once per announcement ──
+            // The expiry re-check matters for a session that was already open when
+            // the deadline passed: fetch only runs at launch, so without this the
+            // banner would linger until the app was restarted.
+            AnnouncementHost(
+                announcement = state.announcement,
+                onDismiss    = { viewModel.dismissAnnouncement() }
+            )
             if (selectedRepo != null) lastRepo = selectedRepo
+
+            // Module install console, above everything: a flash in progress is the
+            // one thing that must not be navigated away from half-done.
+            state.moduleInstall?.let { ui ->
+                ModuleInstallDialog(
+                    ui        = ui,
+                    onDismiss = { viewModel.dismissModuleInstall() },
+                    onReboot  = { viewModel.rebootDevice() }
+                )
+            }
 
             val currentScreen = when {
                 showCompare -> "COMPARE"
                 selectedRepo != null -> "DETAIL"
                 showSeeAll -> "SEE_ALL"
+                showTrackRepoSearch -> "TRACK_REPO_SEARCH"
+                showTrackApp -> "TRACK_APP"
+                showModules -> "MODULES"
                 else -> "TABS"
             }
 
@@ -291,10 +428,21 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
 
                 Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
+                    // Outer wrapper: captures blob gradient + all content so navbar blurs both layers
+                    Box(modifier = Modifier.fillMaxSize().then(
+                        if (isLiquidGlass) Modifier.layerBackdrop(glassBackdrop) else Modifier
+                    )) {
+                    // Glass background captured here so cards/chips/search can blur it
+                    if (isLiquidGlass) {
+                        GlassScreenBackground(
+                            modifier = Modifier.fillMaxSize().layerBackdrop(bgBackdrop)
+                        )
+                    }
+
                     AnimatedContent(
                         targetState  = currentScreen,
                         transitionSpec = {
-                            val order   = listOf("TABS", "SEE_ALL", "DETAIL", "COMPARE")
+                            val order   = listOf("TABS", "SEE_ALL", "DETAIL", "COMPARE", "TRACK_APP", "TRACK_REPO_SEARCH")
                             val forward = order.indexOf(targetState) > order.indexOf(initialState)
                             if (forward) {
                                 (slideInHorizontally(tween(320)) { it } + fadeIn(tween(250))) togetherWith
@@ -325,17 +473,19 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
 // ── Detail ────────────────────────────────────
                             "DETAIL" -> {
                                 if (repo != null) {
-                                    val installState = state.installStates[repo.id] ?: InstallState()
+                                    val installState = viewModel.installStates[repo.id] ?: InstallState()
                                     AppDetailScreen(
                                         repo                  = repo,
                                         installState          = installState,
                                         isFavourite           = state.favourites.any { f -> f.id == repo.id },
                                         translatedDesc        = state.translatedDescriptions[repo.id],
+                                        translatedReadme      = state.translatedReadmes[repo.id],
                                         isTranslating         = state.isTranslating[repo.id] ?: false,
                                         translatedReleaseBody = state.translatedReleaseBodies[repo.id],
                                         isTranslatingRelease  = state.isTranslatingRelease[repo.id] ?: false,
                                         state                 = state,
                                         screenshots           = state.screenshots[repo.id] ?: emptyList(),
+                                        readme                = state.readmes[repo.id],
                                         onInstall             = { installState.apkAsset?.let { a -> viewModel.downloadAndInstall(repo, a) } },
                                         onDownloadOnly        = { installState.apkAsset?.let { a -> viewModel.downloadOnly(repo, a) } },
                                         onUninstall           = { viewModel.uninstall(repo) },
@@ -347,6 +497,7 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                             installState.release?.tag_name?.let { viewModel.ignoreVersion(repo.id, it) }
                                         },
                                         onCompare             = { showCompare = true },
+                                        onToggleHidden        = { hide -> viewModel.setHidden(repo, hide) },
                                         onSelectRelease       = { rel -> viewModel.selectRelease(repo.id, rel) },
                                         onSelectAsset         = { asset -> viewModel.selectAsset(repo.id, asset) },
                                         onBack                = { viewModel.refreshInstall(repo.id); selectedRepo = null }
@@ -360,9 +511,52 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                 installed     = installedSet,
                                 isLoading     = state.isLoadingSeeAll,
                                 useTileColors = true,
+                                listState     = seeAllListState,
                                 onLoadMore    = { viewModel.loadMoreSeeAll() },
                                 onAppClick    = { r -> viewModel.addToHistory(r); selectedRepo = r },
                                 onBack        = { showSeeAll = false }
+                            )
+// ── Modules ───────────────────────────────────
+                            "MODULES" -> ModulesScreen(
+                                modules   = state.modules,
+                                isLoading = state.isLoadingModules,
+                                onBack    = { showModules = false },
+                                onRefresh = { viewModel.loadModules() },
+                                onInstall = { viewModel.installModule(it) }
+                            )
+// ── Track App ─────────────────────────────────
+                            "TRACK_APP" -> TrackAppScreen(
+                                onAppSelected = { pkg, name ->
+                                    trackPrefilledPkg   = pkg
+                                    trackPrefilledName  = name
+                                    viewModel.searchForTracking(name)
+                                    showTrackApp        = false
+                                    showTrackRepoSearch = true
+                                },
+                                onDismiss = { showTrackApp = false }
+                            )
+// ── Track Repo Search ─────────────────────────
+                            "TRACK_REPO_SEARCH" -> TrackRepoSearchScreen(
+                                appName        = trackPrefilledName,
+                                packageName    = trackPrefilledPkg,
+                                results        = state.trackSearchResults,
+                                isSearching    = state.isTrackSearching,
+                                onQueryChange  = { viewModel.searchForTracking(it) },
+                                onRepoSelected = { repo ->
+                                    val fullName = repo.full_name.ifBlank { "${repo.owner.login}/${repo.name}" }
+                                    viewModel.addTrackedApp(TrackedApp(
+                                        packageName   = trackPrefilledPkg,
+                                        appName       = trackPrefilledName.ifBlank { repo.name },
+                                        repoFullName  = fullName,
+                                        repoUrl       = "https://github.com/$fullName"
+                                    ))
+                                    viewModel.clearTrackSearch()
+                                    showTrackRepoSearch = false
+                                    trackPrefilledPkg   = ""
+                                    trackPrefilledName  = ""
+                                },
+                                onEnterManually = { showEnterManually = true },
+                                onDismiss       = { showTrackRepoSearch = false; viewModel.clearTrackSearch() }
                             )
 // ── Tabs ──────────────────────────────────────
                             else -> Box(modifier = Modifier.fillMaxSize()) {
@@ -402,7 +596,8 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                         onSeeAll       = { showSeeAll = true },
                                         onSearchClick  = { selectedTab = VAppTab.SEARCH },
                                         onScrollChange = { scrolling -> dockVisible = !scrolling },
-                                        onProfileClick = { selectedTab = VAppTab.PROFILE}
+                                        onProfileClick = { selectedTab = VAppTab.PROFILE},
+                                        onOpenModules  = { showModules = true }
                                     )
                                     VAppTab.SEARCH -> SearchScreen(
                                         query                 = state.searchQuery,
@@ -411,7 +606,14 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                         selectedSubCategories = state.selectedSubCategories,
                                         installed             = installedSet,
                                         suggestions           = state.trending.take(10),
+                                        sourcePool            = searchSourcePool,
+                                        recentSearches        = state.recentSearches,
+                                        onRecentClick         = { viewModel.onSearch(it) },
+                                        onClearRecent         = { viewModel.clearRecentSearches() },
                                         isSearching           = state.isSearching,
+                                        gridState             = searchGridState,
+                                        bentoPattern          = searchBentoPattern,
+                                        scrollResetKey        = searchScrollKey,
                                         onQueryChange         = { viewModel.onSearch(it) },
                                         onPlatformChange      = { viewModel.setPlatform(it) },
                                         onSubCategoryToggle   = { viewModel.toggleSubCategory(it) },
@@ -422,14 +624,32 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                         onSetSubMenuPlatform  = { viewModel.setSubMenuPlatform(it) }
                                     )
                                     VAppTab.INSTALLED -> InstalledScreen(
-                                        installHistory    = state.installHistory,
-                                        installStates     = state.installStates,
-                                        updates           = state.updates,
-                                        onAppClick        = { r -> selectedRepo = r },
-                                        onCheckUpdates    = { viewModel.checkForUpdatesNow() },
-                                        onUpdateAll       = { viewModel.updateAll() },
-                                        onClearRemoved    = { viewModel.clearRemovedApps() },
-                                        isCheckingUpdates = state.isCheckingUpdates
+                                        installHistory       = state.installHistory,
+                                        installStates        = viewModel.installStates,
+                                        updates              = state.updates,
+                                        scanResults          = state.multiSourceUpdates,
+                                        isScanning           = state.isMultiSourceScanning,
+                                        onAppClick           = { r -> selectedRepo = r },
+                                        onCheckUpdates       = { viewModel.checkForUpdatesNow() },
+                                        onUpdateAll          = { viewModel.updateAll() },
+                                        onClearRemoved       = { viewModel.clearRemovedApps() },
+                                        onScanAll            = { viewModel.scanAllApps() },
+                                        onUpdateScanResult   = { viewModel.downloadFromScanResult(it) },
+                                        onOpenScanResult     = { result ->
+                                            if (result.repoFullName.isNotEmpty()) {
+                                                val parts = result.repoFullName.split("/")
+                                                selectedRepo = GitHubRepo(
+                                                    id        = result.packageName.hashCode().toLong().let { if (it < 0) -it else it },
+                                                    name      = parts.getOrElse(1) { result.appName },
+                                                    full_name = result.repoFullName,
+                                                    owner     = RepoOwner(login = parts.getOrElse(0) { "" })
+                                                )
+                                            }
+                                        },
+                                        isCheckingUpdates    = state.isCheckingUpdates,
+                                        trackedApps          = state.settings.trackedApps,
+                                        onRemoveTracked      = { viewModel.removeTrackedApp(it) },
+                                        onTrackApp           = { showTrackApp = true }
                                     )
                                     VAppTab.PROFILE -> ProfileScreen(
                                         profile         = state.profile,
@@ -442,21 +662,46 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                                         onCheckUpdates  = { viewModel.checkForUpdatesNow() },
                                         onRollback      = { entry -> viewModel.rollbackTo(entry) }
                                     )
-                                    VAppTab.SETTINGS -> SettingsScreen(
-                                        settings          = state.settings,
-                                        currentAccent     = state.accentColor,
-                                        useMonet          = state.useMonet,
-                                        customTheme       = state.customTheme,
-                                        onSave            = { viewModel.updateSettings(it) },
-                                        onAccentSelect    = { viewModel.setAccentColor(it) },
-                                        onMonetToggle     = { viewModel.setUseMonet(it) },
-                                        onCustomThemeSave = { viewModel.setCustomTheme(it) }
-                                    )
+                                    VAppTab.SETTINGS -> when (settingsNav) {
+                                        "MANAGE_REPOS" -> ManageCustomReposScreen(
+                                            customRepos = state.customRepos,
+                                            onBack      = { settingsNav = "MAIN" },
+                                            onAddNew    = { settingsNav = "ADD_REPO" },
+                                            onDelete    = { viewModel.removeCustomRepo(it) }
+                                        )
+                                        "ADD_REPO" -> AddCustomRepoScreen(
+                                            onBack = { settingsNav = "MANAGE_REPOS" },
+                                            onSave = { repo ->
+                                                viewModel.addCustomRepo(repo)
+                                                settingsNav = "MANAGE_REPOS"
+                                            }
+                                        )
+                                        else -> SettingsScreen(
+                                            settings             = state.settings,
+                                            currentAccent        = state.accentColor,
+                                            customTheme          = state.customTheme,
+                                            customRepos          = state.customRepos,
+                                            liquidGlassUnlocked  = state.liquidGlassUnlocked,
+                                            licenseKeyInput      = state.licenseKeyInput,
+                                            licenseVerifyState   = state.licenseVerifyState,
+                                            onSave               = { viewModel.updateSettings(it) },
+                                            onAccentSelect       = { viewModel.setAccentColor(it) },
+                                            onCustomThemeSave    = { viewModel.setCustomTheme(it) },
+                                            onManageCustomRepos  = { settingsNav = "MANAGE_REPOS" },
+                                            onLicenseKeyInput    = { viewModel.setLicenseKeyInput(it) },
+                                            onVerifyLicense      = { viewModel.verifyLicenseKey() },
+                                            onExportBackup       = { viewModel.exportBackupJson() },
+                                            onImportBackup       = { viewModel.importBackupJson(it) },
+                                            hiddenPackages       = state.hiddenPackages,
+                                            onClearHidden        = { viewModel.clearHidden() }
+                                        )
+                                    }
                                 }
                             }
                             } // end Box(paddingValues)
                         }
                     }
+                    } // end glassBackdrop wrapper
 
                     // Reset dock visibility when sub-screens open
                     LaunchedEffect(selectedRepo, showSeeAll, showCompare) {
@@ -465,7 +710,7 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
 
                     // ── Floating dock overlay ──────────────────────────
                     AnimatedVisibility(
-                        visible  = dockVisible && currentScreen == "TABS",
+                        visible  = (isLiquidGlass || isCyberpunkTheme || dockVisible) && currentScreen == "TABS",
                         modifier = Modifier.align(Alignment.BottomCenter),
                         enter    = slideInVertically(tween(220)) { it } + fadeIn(tween(180)),
                         exit     = slideOutVertically(tween(180)) { it } + fadeOut(tween(140))
@@ -474,10 +719,14 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                             selectedTab = selectedTab,
                             updateCount = state.updates.size,
                             onTabSelect = { tab ->
+                                if (selectedTab == VAppTab.SEARCH && tab != VAppTab.SEARCH) {
+                                    viewModel.clearSearchFilter()
+                                }
                                 selectedTab  = tab
                                 selectedRepo = null
                                 showSeeAll   = false
                                 dockVisible  = true
+                                settingsNav  = "MAIN"
                             }
                         )
                     }
@@ -485,61 +734,34 @@ fun HomeScreen(viewModel: AppViewModel = viewModel()) {
                     // ── Self-update banner ─────────────────────────────
                     val selfUpdate = state.selfUpdateInfo
                     if (selfUpdate != null && !state.selfUpdateDismissed) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .fillMaxWidth()
-                                .statusBarsPadding()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            ElevatedCard(
-                                shape     = MaterialTheme.shapes.large,
-                                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
-                                colors    = CardDefaults.elevatedCardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                                ),
-                                modifier  = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier          = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            "Update available: ${selfUpdate.latestVersion}",
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                        if (selfUpdate.changelog.isNotBlank()) {
-                                            Text(
-                                                selfUpdate.changelog.lines().firstOrNull()?.take(60) ?: "",
-                                                color    = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                                                style    = MaterialTheme.typography.labelSmall,
-                                                maxLines = 1
-                                            )
-                                        }
-                                    }
-                                    Spacer(Modifier.width(8.dp))
-                                    FilledTonalButton(onClick = {
-                                        val intent = android.content.Intent(
-                                            android.content.Intent.ACTION_VIEW,
-                                            android.net.Uri.parse(selfUpdate.apkUrl)
-                                        )
-                                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        context.startActivity(intent)
-                                    }) {
-                                        Text("Update")
-                                    }
-                                    IconButton(onClick = { viewModel.dismissSelfUpdate() }) {
-                                        Icon(Icons.Rounded.Close, contentDescription = "Dismiss", tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    }
-                                }
-                            }
-                        }
+                        SelfUpdateBanner(
+                            info      = selfUpdate,
+                            onDismiss = { viewModel.dismissSelfUpdate() },
+                            modifier  = Modifier.align(Alignment.TopCenter)
+                        )
                     }
                 }
             }
         }
+    }
+
+    // ── Enter Repo sheet (shown over any screen) ──────────────────────────
+    if (showEnterManually) {
+        EnterRepoSheet(
+            prefilledPackage = trackPrefilledPkg,
+            prefilledAppName = trackPrefilledName,
+            onConfirm = { tracked ->
+                viewModel.addTrackedApp(tracked)
+                showEnterManually  = false
+                trackPrefilledPkg  = ""
+                trackPrefilledName = ""
+            },
+            onDismiss = {
+                showEnterManually  = false
+                trackPrefilledPkg  = ""
+                trackPrefilledName = ""
+            }
+        )
     }
 }
 
@@ -557,7 +779,9 @@ fun HomeTab(
     onAppClick     : (GitHubRepo) -> Unit,
     onSeeAll       : () -> Unit,
     onSearchClick  : () -> Unit        = {},
-    onScrollChange : (Boolean) -> Unit = {}
+    onScrollChange : (Boolean) -> Unit = {},
+    /** Opens the root-module browser. */
+    onOpenModules  : () -> Unit        = {}
 ) {
     val theme = LocalTheme.current
     val strings = LocalStrings.current
@@ -594,7 +818,10 @@ fun HomeTab(
         onSeeAll()
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(theme.bgPrimary)) {
+    val isGlassMode = LocalIsLiquidGlass.current
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (isGlassMode) Color.Transparent else theme.bgPrimary
+    )) {
         ScreenBackground(ScreenBg.HOME)
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -605,45 +832,62 @@ fun HomeTab(
         },
         modifier = Modifier.fillMaxSize()
     ) {
+        // Deduped category sections, hoisted out of the LazyColumn because
+        // remember() cannot be called from LazyListScope.
+        //
+        // The category queries overlap heavily — a popular media app is also
+        // Trending, and frequently Tools as well — so the page used to serve the
+        // same apps over and over on the way down. Each app now appears in the
+        // first section that carries it. Computed once per data change rather
+        // than mutated during composition, which would re-filter on recompose.
+        val dedupedSections = remember(
+            state.refreshToken, state.recommendations, state.trending,
+            state.media, state.tools, state.games, state.browsers,
+            state.productivity, state.security, state.devtools,
+            state.photoVideo, state.music, state.finance,
+            state.education, state.fitness, state.artDesign,
+            state.news, state.social, state.cloudStorage, state.cooking,
+        ) {
+            val seen = HashSet<Long>()
+            fun uniq(items: List<GitHubRepo>) = items.filter { seen.add(it.id) }
+            listOf(
+                strings.sectionRecommended to uniq(state.recommendations),
+                strings.sectionTrending to uniq(state.trending),
+                strings.sectionMedia to uniq(state.media),
+                strings.sectionTools to uniq(state.tools),
+                strings.sectionGames to uniq(state.games),
+                strings.sectionBrowsers to uniq(state.browsers),
+                strings.sectionProductivity to uniq(state.productivity),
+                strings.sectionSecurity to uniq(state.security),
+                strings.sectionDevTools to uniq(state.devtools),
+                strings.sectionPhotoVideo to uniq(state.photoVideo),
+                strings.sectionMusic to uniq(state.music),
+                strings.sectionFinance to uniq(state.finance),
+                strings.sectionEducation to uniq(state.education),
+                strings.sectionFitness to uniq(state.fitness),
+                strings.sectionArtDesign to uniq(state.artDesign),
+                strings.sectionNews to uniq(state.news),
+                strings.sectionSocial to uniq(state.social),
+                strings.sectionCloudStorage to uniq(state.cloudStorage),
+                strings.sectionCooking to uniq(state.cooking),
+                // A row of one or two cards reads as a glitch, not a section.
+            ).filter { it.second.size >= 3 }
+        }
         LazyColumn(
             state          = listState,
             modifier       = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 180.dp)
         ) {
             item(key = "discover_header") {
-                val notifications = remember(state.updates, state.installHistory) {
-                    buildList {
-                        state.updates.take(5).forEach { u ->
-                            add(AppNotification(
-                                title = "Update available: ${u.repoName}",
-                                body  = "${u.currentTag} → ${u.latestTag}",
-                                type  = NotifType.UPDATE
-                            ))
-                        }
-                        state.installHistory
-                            .sortedByDescending { it.installedAt }
-                            .take(4)
-                            .forEach { entry ->
-                                add(AppNotification(
-                                    title = "Installed ${entry.repoName}",
-                                    body  = "Version ${entry.tagName}",
-                                    type  = NotifType.INSTALL
-                                ))
-                            }
-                    }
-                }
                 DiscoverHeader(
-                    profile         = state.profile,
-                    notifications   = notifications,
-                    notifsDismissed = state.notifsDismissed,
-                    onClearAll      = { viewModel.clearNotifications() },
-                    onProfileClick  = onProfileClick
+                    profile        = state.profile,
+                    onProfileClick = onProfileClick
                 )
             }
             item(key = "search_bar") {
                 HomeSearchBar(
                     onSearchClick = onSearchClick,
-                    modifier      = Modifier.offset(y = (-8).dp)
+                    modifier      = Modifier.padding(top = 14.dp)
                 )
             }
             item(key = "source_chips") {
@@ -679,16 +923,108 @@ fun HomeTab(
                             enter   = expandVertically(tween(420)) + fadeIn(tween(300, delayMillis = 80)),
                             exit    = slideOutVertically(tween(320)) { -it / 3 } + shrinkVertically(tween(360)) + fadeOut(tween(260))
                         ) {
+                            // Seeded by refreshToken so the order is fixed for a
+                            // given load: opening an app detail disposes this whole
+                            // tab, and without a stable seed the pool re-randomised
+                            // on the way back, moving the card the user was aiming
+                            // for. Only an actual refresh reshuffles.
                             val featuredPool = remember(
-                                state.trending, state.fdroidApps, state.gitlabApps,
-                                state.codebergApps, state.flathubApps, state.wingetApps
+                                state.refreshToken, state.trending, state.fdroidApps, state.izzyApps
                             ) {
-                                (state.trending + state.fdroidApps + state.gitlabApps +
-                                 state.codebergApps + state.flathubApps + state.wingetApps)
-                                    .filter { it.owner.avatar_url.isNotEmpty() }
-                                    .shuffled()
+                                (state.trending + state.fdroidApps + state.izzyApps)
+                                    .filter { it.iconUrlOrNull != null }
+                                    .shuffled(kotlin.random.Random(state.refreshToken.toLong()))
                             }
-                            FeaturedCard(apps = featuredPool, onAppClick = onAppClick)
+                            // CDN-pinned promos ride at the front of the carousel and
+                            // are excluded from the shuffled pool so a pinned app can't
+                            // also turn up organically on a later page.
+                            val pinned = remember(state.featuredPins) {
+                                state.featuredPins.map { it.toGitHubRepo() }
+                            }
+                            val pinnedLabels = remember(state.featuredPins) {
+                                state.featuredPins
+                                    .filter { it.label.isNotBlank() }
+                                    .associate { it.toGitHubRepo().id to it.label }
+                            }
+                            // Store-only pins can't open a detail page — there is no
+                            // APK and no release history behind them — so they go
+                            // straight to the listing instead.
+                            val externalPins = remember(state.featuredPins) {
+                                state.featuredPins
+                                    .filter { it.isExternal }
+                                    .associate { it.toGitHubRepo().id to it.storeUrl }
+                            }
+                            val ctx = LocalContext.current
+                            FeaturedCard(
+                                apps         = featuredPool,
+                                seed         = state.refreshToken,
+                                pinned       = pinned,
+                                pinnedLabels = pinnedLabels,
+                                onAppClick   = { repo ->
+                                    val store = externalPins[repo.id]
+                                    if (store != null) {
+                                        runCatching {
+                                            ctx.startActivity(
+                                                android.content.Intent(
+                                                    android.content.Intent.ACTION_VIEW,
+                                                    android.net.Uri.parse(store)
+                                                ).addFlags(
+                                                    android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                                )
+                                            )
+                                        }
+                                    } else onAppClick(repo)
+                                }
+                            )
+                        }
+                    }
+                    // One doorway to the module catalogue, above the collections.
+                    //
+                    // Modules are a mode, not a category: someone who wants one wants
+                    // to filter by family and search properly, and someone who does
+                    // not should be able to skip the whole subject in a glance rather
+                    // than scroll a rail of things their phone may not be able to
+                    // flash.
+                    item(key = "modules_entry") {
+                        AnimatedVisibility(
+                            visible = state.selectedSource == null,
+                            enter   = expandVertically(tween(400)) + fadeIn(tween(300, delayMillis = 40)),
+                            exit    = slideOutVertically(tween(280)) { -it / 3 } + shrinkVertically(tween(330)) + fadeOut(tween(230))
+                        ) {
+                            GlassCard(
+                                onClick        = onOpenModules,
+                                modifier       = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ) {
+                                Row(
+                                    modifier          = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            "Modules",
+                                            style      = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            "Magisk, Zygisk, LSPosed and KernelSU",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        contentDescription = null,
+                                        tint     = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                     item(key = "collections") {
@@ -710,17 +1046,34 @@ fun HomeTab(
                             exit    = slideOutVertically(tween(240)) { -it / 3 } + shrinkVertically(tween(300)) + fadeOut(tween(200))
                         ) {
                             SourcesRow(
-                                gitlabCount   = state.gitlabApps.size,
-                                codebergCount = state.codebergApps.size,
-                                fdroidCount   = state.fdroidApps.size,
-                                flathubCount  = state.flathubApps.size,
-                                wingetCount   = state.wingetApps.size,
-                                izzyCount     = state.izzyApps.size,
-                                onSourceClick = { source ->
+                                gitlabCount       = state.gitlabApps.size,
+                                codebergCount     = state.codebergApps.size,
+                                fdroidCount       = state.fdroidApps.size,
+                                flathubCount      = state.flathubApps.size,
+                                wingetCount       = state.wingetApps.size,
+                                izzyCount         = state.izzyApps.size,
+                                customRepos       = state.customRepos,
+                                onSourceClick     = { source ->
                                     viewModel.openSourceBrowse(source)
+                                    onSeeAll()
+                                },
+                                onCustomRepoClick = { repo ->
+                                    viewModel.openCustomRepoBrowse(repo)
                                     onSeeAll()
                                 }
                             )
+                        }
+                    }
+                    // Newly Launched — month-old apps, right below Browse by source
+                    if (state.newlyLaunched.isNotEmpty()) {
+                        item(key = "newly_launched") {
+                            AnimatedVisibility(
+                                visible = state.selectedSource == null,
+                                enter   = expandVertically(tween(380)) + fadeIn(tween(280)),
+                                exit    = slideOutVertically(tween(240)) { -it / 3 } + shrinkVertically(tween(300)) + fadeOut(tween(200))
+                            ) {
+                                AppRow(strings.sectionNewlyLaunched, state.newlyLaunched, installed, refreshToken = state.refreshToken) { onAppClick(it) }
+                            }
                         }
                     }
                     // App cards filtered by the selected source chip
@@ -744,65 +1097,12 @@ fun HomeTab(
                             AppRow("IzzyOnDroid Apps", state.izzyApps, installed, refreshToken = state.refreshToken) { onAppClick(it) }
                         }
                         else -> {
-                            // null (All Sources) or GITHUB — show all GitHub-backed rows
-                            if (state.recommendations.isNotEmpty()) {
-                                item(key = "recs") {
-                                    AppRow(strings.sectionRecommended, state.recommendations, installed) { onAppClick(it) }
+                            // null (All Sources) or GITHUB — deduped category rows,
+                            // computed above the LazyColumn (see dedupedSections).
+                            dedupedSections.forEach { (title, items) ->
+                                item(key = "sec_$title") {
+                                    AppRow(title, items, installed, refreshToken = state.refreshToken) { onAppClick(it) }
                                 }
-                            }
-                            item(key = "r1") {
-                                AppRow(strings.sectionTrending, state.trending, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r2") {
-                                AppRow(strings.sectionMedia, state.media, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r3") {
-                                AppRow(strings.sectionTools, state.tools, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r4") {
-                                AppRow(strings.sectionGames, state.games, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r5") {
-                                AppRow(strings.sectionBrowsers, state.browsers, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r6") {
-                                AppRow(strings.sectionProductivity, state.productivity, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r7") {
-                                AppRow(strings.sectionSecurity, state.security, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r8") {
-                                AppRow(strings.sectionDevTools, state.devtools, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r9") {
-                                AppRow(strings.sectionPhotoVideo, state.photoVideo, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r10") {
-                                AppRow(strings.sectionMusic, state.music, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r11") {
-                                AppRow(strings.sectionFinance, state.finance, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r12") {
-                                AppRow(strings.sectionEducation, state.education, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r13") {
-                                AppRow(strings.sectionFitness, state.fitness, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r14") {
-                                AppRow(strings.sectionArtDesign, state.artDesign, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r15") {
-                                AppRow(strings.sectionNews, state.news, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r16") {
-                                AppRow(strings.sectionSocial, state.social, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r17") {
-                                AppRow(strings.sectionCloudStorage, state.cloudStorage, installed, refreshToken = state.refreshToken) { onAppClick(it) }
-                            }
-                            item(key = "r18") {
-                                AppRow(strings.sectionCooking, state.cooking, installed, refreshToken = state.refreshToken) { onAppClick(it) }
                             }
                             if (state.isLoadingMore) {
                                 item(key = "load_more") {
@@ -827,6 +1127,251 @@ fun HomeTab(
     }
     } // Box
 }
+/**
+ * "A newer Vyxel is available" banner.
+ *
+ * Shared with the Expressive shell for the same reason as [AnnouncementHost]: an
+ * Expressive user was never being offered the update at all, which is the one banner
+ * that must reach everybody.
+ */
+@Composable
+fun SelfUpdateBanner(
+    info      : SelfUpdateInfo,
+    onDismiss : () -> Unit,
+    modifier  : Modifier = Modifier
+) {
+    val context = LocalContext.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarSpace()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        ElevatedCard(
+            shape     = MaterialTheme.shapes.large,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
+            colors    = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            modifier  = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier          = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Update available: ${info.latestVersion}",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    if (info.changelog.isNotBlank()) {
+                        Text(
+                            info.changelog.lines().firstOrNull()?.take(60) ?: "",
+                            color    = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            style    = MaterialTheme.typography.labelSmall,
+                            maxLines = 1
+                        )
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                FilledTonalButton(onClick = {
+                    val intent = android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse(info.apkUrl)
+                    )
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                }) {
+                    Text("Update")
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        Icons.Rounded.Close,
+                        contentDescription = "Dismiss",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Renders the CDN announcement, in whichever form it was published.
+ *
+ * Extracted from the Classic home so the Expressive shell can show the same thing —
+ * announcements are how the app talks to its users, and an Expressive user was simply
+ * never being told. Both shells call this; there is one implementation.
+ *
+ * The expiry re-check matters for a session that was already open when the deadline
+ * passed: the fetch only runs at launch, so without it the banner would linger until
+ * the app was restarted.
+ */
+@Composable
+fun AnnouncementHost(
+    announcement : Announcement?,
+    onDismiss    : () -> Unit
+) {
+    val ann     = announcement?.takeIf { !it.isExpired } ?: return
+    val context = LocalContext.current
+    val accent  = if (ann.accentHex.isNotBlank())
+        hexToColor(ann.accentHex, MaterialTheme.colorScheme.primary)
+    else MaterialTheme.colorScheme.primary
+
+    val openAction: () -> Unit = {
+        if (ann.actionUrl.isNotBlank()) {
+            runCatching {
+                context.startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse(ann.actionUrl)
+                    )
+                )
+            }
+        }
+        onDismiss()
+    }
+
+    if (ann.hasImage) {
+        // Artwork banner: the image IS the button — tapping anywhere on it follows
+        // actionUrl (the Telegram channel).
+        AnnouncementImageBanner(
+            announcement = ann,
+            accent       = accent,
+            onOpen       = openAction,
+            onDismiss    = onDismiss
+        )
+        return
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                ann.title,
+                style      = MaterialTheme.typography.titleLarge,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+        },
+        text = { Text(ann.message, style = MaterialTheme.typography.bodyMedium) },
+        confirmButton = {
+            if (ann.actionUrl.isNotBlank()) {
+                Button(
+                    onClick = openAction,
+                    colors  = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text(ann.actionLabel.ifBlank { "Open" })
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(LocalStrings.current.cancel) }
+        }
+    )
+}
+
+/**
+ * Startup announcement rendered as artwork rather than text. The whole image is
+ * the tap target (it opens `actionUrl`), with a close affordance in the corner
+ * and an optional caption underneath for anyone who can't read the image.
+ */
+@Composable
+private fun AnnouncementImageBanner(
+    announcement : Announcement,
+    accent       : Color,
+    onOpen       : () -> Unit,
+    onDismiss    : () -> Unit
+) {
+    val aspect = announcement.imageAspect.takeIf { it > 0.1f } ?: (16f / 9f)
+    // Posters carry fine print, so the artwork is never cropped — and the card is
+    // capped at 92% of the screen and scrolls, so a tall poster can't overflow
+    // (and take its close button off-screen) on a short device.
+    val maxCardHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.92f
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(
+            // Non-dismissible announcements still need a way out, so the close
+            // button stays; this only stops an accidental tap-outside.
+            dismissOnBackPress    = announcement.dismissible,
+            dismissOnClickOutside = announcement.dismissible,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Surface(
+                shape       = RoundedCornerShape(24.dp),
+                color       = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                modifier    = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxCardHeight)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    AppImage(
+                        url                = announcement.imageUrl,
+                        contentDescription = announcement.title.ifBlank { "Announcement" },
+                        contentScale       = androidx.compose.ui.layout.ContentScale.Fit,
+                        modifier           = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(aspect)
+                            .clickable(enabled = announcement.actionUrl.isNotBlank()) { onOpen() }
+                    )
+
+                    // title/message are deliberately NOT drawn here: the artwork
+                    // already carries the wording, and duplicating it just makes
+                    // the card taller. They stay in announcement.json purely as
+                    // the fallback for older app versions, which predate
+                    // imageUrl and can only render the text dialog.
+
+                    if (announcement.actionUrl.isNotBlank()) {
+                        Button(
+                            onClick = onOpen,
+                            colors  = ButtonDefaults.buttonColors(containerColor = accent),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
+                                .padding(bottom = 14.dp)
+                                .height(46.dp)
+                        ) {
+                            Text(announcement.actionLabel.ifBlank { "Open" })
+                        }
+                    } else {
+                        Spacer(Modifier.height(14.dp))
+                    }
+                }
+            }
+
+            // Close affordance — sits over the artwork's top-right corner.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .clickable { onDismiss() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = "Dismiss announcement",
+                    tint     = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun LoadingPlaceholder() {
     val t = LocalTheme.current

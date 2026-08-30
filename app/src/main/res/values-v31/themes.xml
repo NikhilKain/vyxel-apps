@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ splash screen.
+
+    The system splash draws the launcher icon's *foreground* layer and clips it to a
+    circle covering the inner two-thirds of the canvas. Our foreground is the artwork
+    full-bleed — correct for a launcher tile, where the mask cropping the corners is
+    the intended treatment — but on the splash that same mask cut straight through the
+    bag and its handle.
+
+    So the splash gets its own drawable: the identical artwork, inset to roughly half
+    the canvas so the whole squircle sits inside the circle the system clips to. The
+    background matches the artwork's own dark corners, which is what lets the inset
+    read as deliberate spacing rather than a logo floating on the wrong colour.
+-->
 <resources>
     <style name="Theme.VyxelApps" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">#000000</item>
         <item name="android:windowSplashScreenBackground">#000000</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_placeholder</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
     </style>
 </resources>

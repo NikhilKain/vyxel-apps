@@ -13,3 +13,27 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Build outputs — releases are published from CI, not committed
+app/release/
+app/debug/
+*.apk
+*.aab
+
+# Logs and IDE scratch
+*.log
+.kotlin/
+build_debug.log
+
+# Signing key material — never commit private keys
+*.pem
+*.pkcs8.b64
+
+# Local snapshots of source files; git already keeps history
+_backup_*/
+
+
+# Signing / service credentials — never commit
+*.jks
+*.keystore
+app/google-services.json

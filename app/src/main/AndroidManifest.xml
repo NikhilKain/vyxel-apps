@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -16,12 +16,14 @@
     <application
         android:name=".VyxelApp"
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.VyxelApps"
-        android:requestLegacyExternalStorage="true">
+        android:usesCleartextTraffic="false">
 
         <activity
             android:name=".MainActivity"
@@ -44,6 +46,39 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Shizuku provider for privileged APK installation -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:exported="true"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL">
+            <meta-data
+                android:name="rikka.shizuku.ShizukuProvider.MANAGER_APPLICATION_ID"
+                android:value="moe.shizuku.privileged.api" />
+        </provider>
+
+        <activity
+            android:name="rikka.shizuku.ShizukuRequestPermissionActivity"
+            android:exported="true" />
+
+        <!-- Home-screen widget: App of the Day + pending updates -->
+        <receiver
+            android:name=".TodayWidgetProvider"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_today_info" />
+        </receiver>
+        <!-- PackageInstaller session callbacks for the Expressive UI installer. -->
+        <receiver
+            android:name=".expressive.install.InstallResultReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

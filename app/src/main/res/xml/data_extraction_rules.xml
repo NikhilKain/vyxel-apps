@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Backup / transfer rules (Android 12 / API 31 and above).
+
+  Settings/theme are excluded so they do NOT restore on reinstall. The encrypted
+  token store is excluded because its AndroidKeyStore master key never travels
+  with the backup — a restored blob could not be decrypted anyway. Caches are
+  excluded because they are caches.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="vyxel_prefs.xml" />
+        <exclude domain="sharedpref" path="vyxel_secure.xml" />
+        <exclude domain="sharedpref" path="gh_search_cache.xml" />
+        <exclude domain="sharedpref" path="metadata_cache.xml" />
+        <exclude domain="sharedpref" path="apk_presence.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="vyxel_prefs.xml" />
+        <exclude domain="sharedpref" path="vyxel_secure.xml" />
+        <exclude domain="sharedpref" path="gh_search_cache.xml" />
+        <exclude domain="sharedpref" path="metadata_cache.xml" />
+        <exclude domain="sharedpref" path="apk_presence.xml" />
+    </device-transfer>
+</data-extraction-rules>

@@ -37,7 +37,7 @@ fun CompareScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(t.bgPrimary)) {
         Row(
-            modifier = Modifier.fillMaxWidth().background(t.bgSurface).statusBarsPadding()
+            modifier = Modifier.fillMaxWidth().background(t.bgSurface).statusBarSpace()
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -143,12 +143,12 @@ private fun CompareCardHeader(repo: GitHubRepo, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(
-            model = repo.owner.avatar_url, contentDescription = null,
+            model = repo.iconUrlOrNull, contentDescription = null,
             modifier = Modifier.size(56.dp).clip(CircleShape),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(8.dp))
-        Text(repo.name, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+        Text(repo.displayName, fontWeight = FontWeight.Bold, fontSize = 14.sp,
             color = t.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text("@${repo.owner.login}", fontSize = 11.sp, color = t.textSecondary, maxLines = 1)
     }
@@ -171,7 +171,7 @@ private fun CompareRow(label: String, leftValue: String, rightValue: String, lef
 }
 
 private fun detectFeatures(repo: GitHubRepo): List<String> {
-    val text = "${repo.name} ${repo.description ?: ""}".lowercase()
+    val text = "${repo.displayName} ${repo.description ?: ""}".lowercase()
     val features = mutableListOf<String>()
     if ("login" in text || "account" in text || "auth" in text) features.add("Login support")
     if ("sponsorblock" in text)   features.add("SponsorBlock")

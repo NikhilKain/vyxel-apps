@@ -31,9 +31,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -54,16 +56,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Size
-
-private fun saveImageLocally(context: Context, uri: android.net.Uri, filename: String): String? {
-    return try {
-        val file = File(context.filesDir, "$filename.jpg")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            file.outputStream().use { output -> input.copyTo(output) }
-        }
-        file.absolutePath
-    } catch (_: Exception) { null }
-}
 
 private fun saveBitmapLocally(context: Context, bmp: android.graphics.Bitmap, filename: String): String? = try {
     val file = File(context.filesDir, "$filename.jpg")
@@ -202,7 +194,7 @@ fun ImageCropDialog(
                 style    = MaterialTheme.typography.labelMedium,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .statusBarsPadding()
+                    .statusBarSpace()
                     .padding(top = 18.dp)
             )
 
@@ -264,7 +256,7 @@ fun SubScreenHeader(title: String, onBack: () -> Unit) {
             titleContentColor          = MaterialTheme.colorScheme.onSurface,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
-        modifier = Modifier.statusBarsPadding()
+        modifier = Modifier.statusBarSpace()
     )
 }
 
@@ -321,7 +313,10 @@ fun ProfileScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    val isGlass = LocalIsLiquidGlass.current
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (isGlass) Color.Transparent else MaterialTheme.colorScheme.background
+    )) {
         ScreenBackground(ScreenBg.PROFILE)
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
@@ -329,7 +324,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Transparent)
-                .statusBarsPadding()
+                .statusBarSpace()
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Row(
@@ -527,11 +522,9 @@ fun ProfileScreen(
                     )
                     Spacer(Modifier.height(10.dp))
 
-                    ElevatedCard(
-                        shape     = MaterialTheme.shapes.large,
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
-                        colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                        modifier  = Modifier.fillMaxWidth()
+                    GlassCard(
+                        modifier  = Modifier.fillMaxWidth(),
+                        elevation = 1.dp
                     ) {
                         Column {
                             // Send Feedback
@@ -602,6 +595,27 @@ fun ProfileScreen(
                                     Text(s.shareVyxelDesc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 14.dp))
+
+                            // Join the community
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/vyxelapps/1")))
+                                    }
+                                    .padding(14.dp),
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                @Suppress("DEPRECATION")
+                                Icon(Icons.Rounded.Send, null, tint = Color(0xFF2AABEE), modifier = Modifier.size(20.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(s.joinCommunity, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(s.chatOnTelegram, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Icon(Icons.Rounded.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f), modifier = Modifier.size(16.dp))
+                            }
                         }
                     }
                 }
@@ -616,7 +630,7 @@ fun ProfileScreen(
                         Text(s.favourites, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
-                items(favourites.take(5)) { repo ->
+                items(favourites) { repo ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                         AppListTile(repo = repo, onClick = { onAppClick(repo) })
                     }
@@ -648,10 +662,7 @@ fun ProfileScreen(
                 }
                 items(updates) { upd ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                        Card(
-                            shape  = MaterialTheme.shapes.medium,
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
-                        ) {
+                        GlassCard(shape = MaterialTheme.shapes.medium) {
                             Row(
                                 modifier              = Modifier.fillMaxWidth().padding(12.dp),
                                 verticalAlignment     = Alignment.CenterVertically,
@@ -681,11 +692,10 @@ fun ProfileScreen(
                 }
                 items(installHistory.sortedByDescending { it.installedAt }.take(15)) { entry ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                        Card(
-                            onClick  = { onRollback(entry) },
-                            shape    = MaterialTheme.shapes.extraLarge,
-                            colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.35f)),
-                            border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(0.32f))
+                        GlassCard(
+                            onClick        = { onRollback(entry) },
+                            shape          = MaterialTheme.shapes.extraLarge,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.35f)
                         ) {
                             Row(
                                 modifier              = Modifier.padding(12.dp),
@@ -716,14 +726,41 @@ fun ProfileScreen(
                 }
                 items(history.take(5)) { item ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                        Card(
-                            shape  = MaterialTheme.shapes.extraLarge,
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.25f)),
-                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(0.25f))
+                        GlassCard(
+                            shape          = MaterialTheme.shapes.extraLarge,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.25f)
                         ) {
                             AppListTile(repo = item.repo, onClick = { onAppClick(item.repo) })
                         }
                     }
+                }
+            }
+
+            // Footer
+            item {
+                Row(
+                    modifier              = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 20.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Made with ",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.55f)
+                    )
+                    Icon(
+                        Icons.Rounded.Favorite,
+                        null,
+                        tint     = RedDanger.copy(0.75f),
+                        modifier = Modifier.size(11.dp)
+                    )
+                    Text(
+                        " for the community by Vythera",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.55f)
+                    )
                 }
             }
         }
@@ -732,18 +769,129 @@ fun ProfileScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LIQUID GLASS THEME TILE  — premium theme selector card
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun LiquidGlassTile(
+    label       : String,
+    drawableRes : Int,
+    selected    : Boolean,
+    locked      : Boolean,
+    onClick     : () -> Unit,
+    modifier    : Modifier = Modifier,
+    family      : String = "Liquid Glass"
+) {
+    val accent    = MaterialTheme.colorScheme.primary
+    val tileShape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = modifier
+            .height(130.dp)
+            .clip(tileShape)
+            .clickable(onClick = onClick)
+            .border(
+                width = if (selected && !locked) 2.dp else 1.dp,
+                color = if (selected && !locked) accent else Color.White.copy(alpha = 0.35f),
+                shape = tileShape
+            )
+    ) {
+        Image(
+            painter            = painterResource(drawableRes),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.Crop
+        )
+        // Bottom gradient + label (always visible so preview is informative)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.65f))))
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+        ) {
+            Column {
+                Text(family, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.75f))
+                Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Color.White)
+            }
+        }
+        // PRO badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFFFD700).copy(alpha = 0.92f))
+                .padding(horizontal = 7.dp, vertical = 3.dp)
+        ) {
+            Text("PRO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1A1000), fontSize = 9.sp)
+        }
+        if (locked) {
+            // Dark scrim + lock icon centred over tile
+            Box(
+                modifier         = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.52f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        Icons.Rounded.Lock,
+                        contentDescription = "Locked",
+                        tint     = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    // No price on the tile. Four tiles each showing "$3 USD" read
+                    // as four separate purchases — roughly $12 for the set — when
+                    // one key unlocks all of them. The price is stated once,
+                    // below the grid, where it can say so.
+                    Text(
+                        "Tap to unlock",
+                        style  = MaterialTheme.typography.labelSmall,
+                        color  = Color.White.copy(alpha = 0.9f)
+                    )
+                }
+            }
+        } else if (selected) {
+            // Selected checkmark (only when unlocked)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(accent),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(13.dp))
+            }
+        }
+    }
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SETTINGS SCREEN  — M3 Expressive surfaces
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun SettingsScreen(
-    settings          : AppSettings,
-    currentAccent     : Color?                    = null,
-    useMonet          : Boolean                   = false,
-    customTheme       : CustomThemeData           = CustomThemeData(),
-    onSave            : (AppSettings) -> Unit,
-    onAccentSelect    : (Color?) -> Unit          = {},
-    onMonetToggle     : (Boolean) -> Unit         = {},
-    onCustomThemeSave : (CustomThemeData) -> Unit = {}
+    settings             : AppSettings,
+    currentAccent        : Color?                    = null,
+    customTheme          : CustomThemeData           = CustomThemeData(),
+    customRepos          : List<CustomRepo>          = emptyList(),
+    liquidGlassUnlocked  : Boolean                   = false,
+    licenseKeyInput      : String                    = "",
+    licenseVerifyState   : LicenseVerifyState        = LicenseVerifyState.IDLE,
+    onSave               : (AppSettings) -> Unit,
+    onAccentSelect       : (Color?) -> Unit          = {},
+    onCustomThemeSave    : (CustomThemeData) -> Unit = {},
+    onManageCustomRepos  : () -> Unit                = {},
+    onLicenseKeyInput    : (String) -> Unit          = {},
+    onVerifyLicense      : () -> Unit                = {},
+    onExportBackup       : () -> String              = { "" },
+    onImportBackup       : (String) -> Boolean       = { false },
+    /** Packages hidden across every source; shared with the Expressive shell. */
+    hiddenPackages       : Set<String>               = emptySet(),
+    onClearHidden        : () -> Unit                = {},
 ) {
     val t       = LocalTheme.current
     val context = LocalContext.current
@@ -753,7 +901,6 @@ fun SettingsScreen(
     var amoled               by remember { mutableStateOf(settings.amoledBlack)        }
     var fontName             by remember { mutableStateOf(settings.fontName)           }
     var language             by remember { mutableStateOf(settings.language)           }
-    var followSystemMonet    by remember { mutableStateOf(settings.followSystemMonet)  }
     var fontExpanded         by remember { mutableStateOf(false)                       }
     var customEditorExpanded by remember { mutableStateOf(false)                       }
 
@@ -772,21 +919,57 @@ fun SettingsScreen(
         "Space Grotesk", "Plus Jakarta Sans", "Figtree", "Roboto Slab"
     )
 
-    fun currentSettings(tok: String = settings.githubToken) =
-        AppSettings(language, tok, settings.sortBy, fontName, themeMode, amoled, followSystemMonet)
+    var wallpaperUri    by remember { mutableStateOf(settings.liquidGlassWallpaperUri) }
+    var glassBlur         by remember { mutableStateOf(settings.liquidGlassBlur) }
+    var glassEdge         by remember { mutableStateOf(settings.liquidGlassEdge) }
+    var glassRefraction   by remember { mutableStateOf(settings.liquidGlassRefraction) }
+    var glassNavBlur      by remember { mutableStateOf(settings.liquidGlassNavBlur) }
+    var glassNavEdge      by remember { mutableStateOf(settings.liquidGlassNavEdge) }
+    var glassNavRefraction    by remember { mutableStateOf(settings.liquidGlassNavRefraction) }
+    var glassNavTextColorHex   by remember { mutableStateOf(settings.liquidGlassNavTextColor) }
+    var showNavTextColorPicker by remember { mutableStateOf(false) }
+    var navTextColorBeforePick by remember { mutableStateOf("") }
+    var showPreReleases       by remember { mutableStateOf(settings.showPreReleases) }
 
-    LaunchedEffect(themeMode, amoled, fontName, language, followSystemMonet) {
+    fun currentSettings(tok: String = settings.githubToken) =
+        settings.copy(
+            language                  = language,
+            githubToken               = tok,
+            fontName                  = fontName,
+            themeMode                 = themeMode,
+            amoledBlack               = amoled,
+            liquidGlassWallpaperUri   = wallpaperUri,
+            liquidGlassBlur           = glassBlur,
+            liquidGlassEdge           = glassEdge,
+            liquidGlassRefraction     = glassRefraction,
+            liquidGlassNavBlur        = glassNavBlur,
+            liquidGlassNavEdge        = glassNavEdge,
+            liquidGlassNavRefraction  = glassNavRefraction,
+            liquidGlassNavTextColor   = glassNavTextColorHex,
+            showPreReleases           = showPreReleases
+        )
+
+    LaunchedEffect(themeMode, amoled, fontName, language, wallpaperUri, glassBlur, glassEdge, glassRefraction, glassNavBlur, glassNavEdge, glassNavRefraction, glassNavTextColorHex, showPreReleases) {
         onSave(currentSettings())
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // Sync themeMode when ViewModel changes it externally (e.g. preview revert)
+    // Only themeMode needs syncing — syncing slider values caused race conditions with auto-save
+    LaunchedEffect(settings.themeMode) {
+        if (themeMode != settings.themeMode) themeMode = settings.themeMode
+    }
+
+    val isGlassMode = LocalIsLiquidGlass.current
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (isGlassMode) Color.Transparent else MaterialTheme.colorScheme.background
+    )) {
         ScreenBackground(ScreenBg.SETTINGS)
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Transparent)
-                .statusBarsPadding()
+                .statusBarSpace()
                 .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Text(s.settingsTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -808,25 +991,30 @@ fun SettingsScreen(
             )
 
             // Theme mode — dropdown selector
-            val themeOptions = listOf(
-                "Light"   to "☀️  Light",
-                "Dark"    to "🌙  Dark",
-                "AMOLED"  to "🖤  AMOLED",
-                "Minimal" to "◾  Minimal",
-                "Sunset"  to "🌅  Sunset",
-                "Custom"  to "🎨  Custom",
-                "System"  to "📱  Follow System"
-            )
-            val selectedThemeLabel = themeOptions.firstOrNull { it.first == themeMode }?.second ?: themeMode
+            val themeOptions = buildList {
+                // CYBERPUNK is now PRO-gated — it lives in the Liquid Glass PRO
+                // tiles below, not this free dropdown.
+                // Material You needs the Android 12 dynamic-color APIs
+                if (android.os.Build.VERSION.SDK_INT >= 31) add("Dynamic" to s.themeDynamic)
+                add("Light"   to s.themeLight)
+                add("Dark"    to s.themeDark)
+                add("AMOLED"  to s.themeAmoled)
+                add("Minimal" to s.themeMinimal)
+                add("Sunset"  to s.themeSunset)
+                add("Custom"  to s.themeCustomLabel)
+                add("System"  to s.followSystem)
+            }
+            val selectedThemeLabel = when (themeMode) {
+                "Liquid Glass Dark"  -> s.themeLiquidGlassDark
+                "Liquid Glass Light" -> s.themeLiquidGlassLight
+                else -> themeOptions.firstOrNull { it.first == themeMode }?.second ?: themeMode
+            }
             var themeDropExpanded by remember { mutableStateOf(false) }
 
             Box {
-                ElevatedCard(
-                    onClick   = { themeDropExpanded = true },
-                    shape     = MaterialTheme.shapes.large,
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                    colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    modifier  = Modifier.fillMaxWidth()
+                GlassSettingsCard(
+                    onClick  = { themeDropExpanded = true },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier              = Modifier.fillMaxWidth().padding(16.dp),
@@ -874,6 +1062,91 @@ fun SettingsScreen(
                 }
             }
 
+            // CYBERPUNK: effects toggle — only while the theme is active
+            if (themeMode == CYBERPUNK_MODE) {
+                GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Neon Effects", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Animated grid, scanlines & particles", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(
+                            checked = settings.cyberpunkEffects,
+                            onCheckedChange = { onSave(currentSettings().copy(cyberpunkEffects = it)) }
+                        )
+                    }
+                }
+            }
+
+            // ── Interface: Classic vs Expressive shell ────────────
+            // Writing UiStylePrefs directly (as well as through onSave) means
+            // MainActivity can read the choice synchronously on next launch,
+            // before any ViewModel has loaded.
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(
+                        "Interface",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "Classic keeps this interface. Expressive is the Material 3 " +
+                            "Expressive store with live multi-source search.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    val uiCtx = LocalContext.current
+                    val currentUiStyle = UiStylePrefs.state(uiCtx).value
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf(UiStyle.Classic, UiStyle.Expressive).forEach { style ->
+                            val selected = currentUiStyle == style
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(
+                                        if (selected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    .clickable { UiStylePrefs.set(uiCtx, style) }
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    style.name,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (showNavTextColorPicker) {
+                NavBarTextColorPicker(
+                    initialColorHex = glassNavTextColorHex,
+                    onColorChange   = { color ->
+                        glassNavTextColorHex = "#%06X".format(0xFFFFFF and color.toArgb())
+                    },
+                    onSave          = { hex ->
+                        glassNavTextColorHex = hex
+                        showNavTextColorPicker = false
+                    },
+                    onDismiss       = {
+                        glassNavTextColorHex = navTextColorBeforePick
+                        showNavTextColorPicker = false
+                    }
+                )
+            }
+
             // Custom theme — collapsed pill or full editor
             if (themeMode == "Custom") {
                 if (customEditorExpanded) {
@@ -884,11 +1157,9 @@ fun SettingsScreen(
                     )
                 } else {
                     // Compact "applied" row shown after editor collapses
-                    ElevatedCard(
-                        shape     = MaterialTheme.shapes.large,
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                        colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        modifier  = Modifier.fillMaxWidth()
+                    GlassSettingsCard(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        modifier       = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -926,17 +1197,14 @@ fun SettingsScreen(
             }
 
             // Accent Color — collapsed row + expandable picker
+            // NEON-PUNK: hidden — the theme ships a fixed accent
             var accentPickerExpanded by remember { mutableStateOf(false) }
             val defaultAccentColor = MaterialTheme.colorScheme.primary
             var pendingAccent by remember(currentAccent) { mutableStateOf(currentAccent ?: defaultAccentColor) }
             var accentChanged by remember { mutableStateOf(false) }
 
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
+            if (themeMode != NEON_PUNK_MODE)
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
                     Row(
                         modifier              = Modifier
@@ -947,7 +1215,7 @@ fun SettingsScreen(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Accent Color",
+                            s.accentColor,
                             style      = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
                             color      = MaterialTheme.colorScheme.onSurface
@@ -993,64 +1261,235 @@ fun SettingsScreen(
                 }
             }
 
-            // AMOLED
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier              = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(s.amoledOverride, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                        Text(s.amoledOverrideDesc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 17.sp)
+            // Wallpaper — Liquid Glass only
+            if (themeMode == "Liquid Glass Dark" || themeMode == "Liquid Glass Light") {
+                val wallpaperLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                    if (uri != null) {
+                        runCatching {
+                            context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        wallpaperUri = uri.toString()
                     }
-                    Switch(
-                        checked         = amoled,
-                        onCheckedChange = { amoled = it }
-                    )
+                }
+                GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier              = Modifier
+                                .fillMaxWidth()
+                                .clickable { wallpaperLauncher.launch("image/*") }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    s.wallpaperLabel,
+                                    style      = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color      = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    if (wallpaperUri.isNotEmpty()) "Custom wallpaper active" else "Tap to choose from gallery",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (wallpaperUri.isNotEmpty()) {
+                                Row(
+                                    verticalAlignment     = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    AsyncImage(
+                                        model          = wallpaperUri,
+                                        contentDescription = null,
+                                        contentScale   = ContentScale.Crop,
+                                        modifier       = Modifier
+                                            .size(44.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                    )
+                                    IconButton(onClick = { wallpaperUri = "" }) {
+                                        Icon(
+                                            Icons.Rounded.Close,
+                                            contentDescription = "Remove wallpaper",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Icon(
+                                    Icons.Rounded.Image,
+                                    contentDescription = null,
+                                    tint    = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // All Tiles — expandable blur + edge sliders
+                var tilesExpanded by remember { mutableStateOf(false) }
+                GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier              = Modifier
+                                .fillMaxWidth()
+                                .clickable { tilesExpanded = !tilesExpanded }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                s.allTilesLabel,
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Icon(
+                                if (tilesExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                                null, tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        AnimatedVisibility(visible = tilesExpanded) {
+                            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.blurIntensity, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${glassBlur.toInt()} dp", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassBlur, onValueChange = { glassBlur = it }, valueRange = 2f..28f, modifier = Modifier.fillMaxWidth())
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.edgeEffect, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${(glassEdge * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassEdge, onValueChange = { glassEdge = it }, valueRange = 0f..2f, modifier = Modifier.fillMaxWidth())
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.refraction, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${(glassRefraction * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassRefraction, onValueChange = { glassRefraction = it }, valueRange = 0f..2f, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
+                }
+
+                // Nav Bar — expandable blur + edge sliders
+                var navExpanded by remember { mutableStateOf(false) }
+                GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Row(
+                            modifier              = Modifier
+                                .fillMaxWidth()
+                                .clickable { navExpanded = !navExpanded }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                s.navBarLabel,
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Icon(
+                                if (navExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                                null, tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        AnimatedVisibility(visible = navExpanded) {
+                            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.blurIntensity, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${glassNavBlur.toInt()} dp", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassNavBlur, onValueChange = { glassNavBlur = it }, valueRange = 2f..28f, modifier = Modifier.fillMaxWidth())
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.edgeEffect, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${(glassNavEdge * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassNavEdge, onValueChange = { glassNavEdge = it }, valueRange = 0f..2f, modifier = Modifier.fillMaxWidth())
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(s.refraction, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${(glassNavRefraction * 100).toInt()}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                }
+                                Slider(value = glassNavRefraction, onValueChange = { glassNavRefraction = it }, valueRange = 0f..2f, modifier = Modifier.fillMaxWidth())
+                                Spacer(Modifier.height(8.dp))
+                                // Nav text color picker (Liquid Glass only)
+                                if (isGlassMode) {
+                                    Row(
+                                        modifier              = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment     = Alignment.CenterVertically
+                                    ) {
+                                        Text(s.navTextColorLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                                        val previewColor = if (glassNavTextColorHex.isNotEmpty()) {
+                                            try { Color(android.graphics.Color.parseColor(
+                                                if (glassNavTextColorHex.startsWith("#")) glassNavTextColorHex else "#$glassNavTextColorHex"
+                                            )) } catch (_: Exception) { null }
+                                        } else null
+                                        if (previewColor != null) {
+                                            Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(previewColor).border(1.dp, MaterialTheme.colorScheme.outline.copy(0.4f), CircleShape))
+                                            Spacer(Modifier.width(8.dp))
+                                        }
+                                        OutlinedButton(
+                                            onClick = { navTextColorBeforePick = glassNavTextColorHex; showNavTextColorPicker = true },
+                                            shape   = MaterialTheme.shapes.large,
+                                            modifier = Modifier.height(34.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                                        ) {
+                                            Text(s.selectNavTextColor, style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
-            // Monet / Material You
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
-                Column {
+            // AMOLED (hidden in Liquid Glass mode)
+            if (!isGlassMode) {
+                GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier              = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Material You (Monet)", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                            Text("Use dynamic color from wallpaper (Android 12+)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 17.sp)
+                            Text(s.amoledOverride, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(s.amoledOverrideDesc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 17.sp)
                         }
                         Switch(
-                            checked         = useMonet,
-                            onCheckedChange = { onMonetToggle(it) }
-                        )
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-                    Row(
-                        modifier              = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Follow System", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                            Text("Auto-enable Monet when system supports it", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 17.sp)
-                        }
-                        Switch(
-                            checked         = followSystemMonet,
-                            onCheckedChange = { followSystemMonet = it }
+                            checked         = amoled,
+                            onCheckedChange = { amoled = it }
                         )
                     }
                 }
@@ -1065,12 +1504,7 @@ fun SettingsScreen(
                 letterSpacing = 1.sp
             )
 
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
                     Row(
                         modifier = Modifier
@@ -1145,12 +1579,7 @@ fun SettingsScreen(
             )
             var langExpanded by remember { mutableStateOf(false) }
 
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
                     Row(
                         modifier = Modifier
@@ -1209,13 +1638,14 @@ fun SettingsScreen(
 
             var githubTokenInput by remember { mutableStateOf(settings.githubToken) }
             var isEditingToken   by remember { mutableStateOf(settings.githubToken.isEmpty()) }
+            // A PAT has to be readable back, not only writable: setting Vyxel up on a
+            // second device otherwise means revoking the token and minting a new one,
+            // because there is no way to get the one already stored off the first
+            // device. Reveal is opt-in and resets whenever the saved token changes.
+            var revealToken      by remember(settings.githubToken) { mutableStateOf(false) }
+            val tokenClipboard   = LocalContext.current
 
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier            = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -1227,7 +1657,7 @@ fun SettingsScreen(
                         Image(
                             painter            = painterResource(R.drawable.github),
                             contentDescription = null,
-                            modifier           = Modifier.size(48.dp)
+                            modifier           = Modifier.size(38.dp)
                         )
                         Column {
                             Text(
@@ -1244,15 +1674,33 @@ fun SettingsScreen(
                         }
                     }
 
-                    if (isEditingToken) {
+                    // `|| isBlank()`: the saved view is a row of bullets with reveal and
+                    // copy beside them, which on an empty token claims a secret is
+                    // stored and offers to copy nothing. Clearing the field and saving
+                    // used to land exactly there, because `isEditingToken` is only
+                    // seeded from the token at first composition.
+                    if (isEditingToken || settings.githubToken.isBlank()) {
                         TextField(
                             value         = githubTokenInput,
                             onValueChange = { githubTokenInput = it },
                             modifier      = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small),
                             placeholder   = { Text("ghp_xxxxxxxxxxxx", style = MaterialTheme.typography.bodyMedium) },
                             singleLine    = true,
-                            visualTransformation = if (githubTokenInput.length > 4)
+                            visualTransformation = if (githubTokenInput.length > 4 && !revealToken)
                                 PasswordVisualTransformation() else VisualTransformation.None,
+                            trailingIcon = if (githubTokenInput.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { revealToken = !revealToken }) {
+                                        Icon(
+                                            if (revealToken) Icons.Rounded.VisibilityOff
+                                            else Icons.Rounded.Visibility,
+                                            contentDescription =
+                                                if (revealToken) s.hideTokenLabel else s.showTokenLabel,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    }
+                                }
+                            } else null,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHighest,
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -1302,16 +1750,444 @@ fun SettingsScreen(
                             verticalAlignment     = Alignment.CenterVertically
                         ) {
                             Text(
-                                "••••••••••••••••••••",
-                                style    = MaterialTheme.typography.bodyMedium,
-                                color    = MaterialTheme.colorScheme.primary.copy(0.60f),
-                                modifier = Modifier.padding(vertical = 14.dp)
+                                if (revealToken) settings.githubToken else "••••••••••••••••••••",
+                                style     = MaterialTheme.typography.bodyMedium,
+                                color     = MaterialTheme.colorScheme.primary.copy(0.60f),
+                                maxLines  = 1,
+                                overflow  = TextOverflow.Ellipsis,
+                                modifier  = Modifier.weight(1f).padding(vertical = 14.dp)
                             )
+                            IconButton(onClick = { revealToken = !revealToken }) {
+                                Icon(
+                                    if (revealToken) Icons.Rounded.VisibilityOff
+                                    else Icons.Rounded.Visibility,
+                                    contentDescription = if (revealToken) s.hideTokenLabel else s.showTokenLabel,
+                                    tint = MaterialTheme.colorScheme.primary.copy(0.70f),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            // Long tokens are ellipsised above, so seeing one is not
+                            // the same as being able to transcribe it. Copy is what
+                            // actually gets it onto the second device.
+                            IconButton(onClick = {
+                                tokenClipboard
+                                    .getSystemService(android.content.ClipboardManager::class.java)
+                                    ?.setPrimaryClip(
+                                        android.content.ClipData.newPlainText(
+                                            "GitHub token", settings.githubToken,
+                                        )
+                                    )
+                            }) {
+                                Icon(
+                                    Icons.Rounded.ContentCopy,
+                                    contentDescription = s.copyTokenLabel,
+                                    tint = MaterialTheme.colorScheme.primary.copy(0.70f),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                             IconButton(onClick = { isEditingToken = true }) {
                                 Icon(Icons.Rounded.Edit, null, tint = MaterialTheme.colorScheme.primary.copy(0.70f), modifier = Modifier.size(18.dp))
                             }
                         }
                     }
+
+                    // Sits inside the same card as the token because the token is what
+                    // changes these numbers: 10→30 searches a minute, 60→5000 core
+                    // requests an hour. Seeing the ceiling move is the clearest
+                    // argument for adding one.
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
+                    GitHubQuotaMeter()
+                }
+            }
+
+            // Releases section
+            Text(
+                s.releasesSection,
+                style         = MaterialTheme.typography.labelSmall,
+                fontWeight    = FontWeight.Bold,
+                color         = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.sp
+            )
+
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier              = Modifier
+                        .fillMaxWidth()
+                        .clickable { showPreReleases = !showPreReleases; onSave(currentSettings()) }
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            s.showPreReleases,
+                            style      = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            s.showPreReleasesDesc,
+                            style    = MaterialTheme.typography.bodySmall,
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 17.sp
+                        )
+                    }
+                    Switch(
+                        checked         = showPreReleases,
+                        onCheckedChange = { showPreReleases = it; onSave(currentSettings()) }
+                    )
+                }
+            }
+
+            // Custom Sources
+            Text(
+                "CUSTOM SOURCES",
+                style         = MaterialTheme.typography.labelSmall,
+                fontWeight    = FontWeight.Bold,
+                color         = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.sp
+            )
+
+            GlassSettingsCard(
+                onClick  = onManageCustomRepos,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier              = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.icons8add48), // Replace with your PNG name
+                                contentDescription = null,
+                                modifier = Modifier.size(38.dp) // Adjust size as needed
+                            )
+
+                        Column {
+                            Text(
+                                s.addYourOwnRepo,
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                if (customRepos.isEmpty()) s.noReposYet
+                                else "${customRepos.size} repo${if (customRepos.size == 1) "" else "s"}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Icon(
+                        Icons.Rounded.ChevronRight,
+                        null,
+                        tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            // ── Shizuku (privileged install) ─────────────────────────────
+            Text(
+                s.installationSection,
+                style         = MaterialTheme.typography.labelSmall,
+                fontWeight    = FontWeight.Bold,
+                color         = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.sp
+            )
+
+            var shizukuAvailable by remember { mutableStateOf(ShizukuInstaller.isAvailable()) }
+            var shizukuGranted   by remember { mutableStateOf(ShizukuInstaller.hasPermission()) }
+
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier              = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_shizuku), // Replace with your PNG name
+                                contentDescription = null,
+                                modifier = Modifier.size(38.dp) // Adjust size as needed
+                            )
+
+                        Column {
+                            Text(
+                                "Shizuku",
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                when {
+                                    shizukuAvailable && shizukuGranted -> s.shizukuActive
+                                    shizukuAvailable                   -> s.shizukuRunning
+                                    else                               -> s.shizukuNotRunning
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    when {
+                        shizukuAvailable && shizukuGranted -> {
+                            Icon(Icons.Rounded.CheckCircle, null,
+                                tint     = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp))
+                        }
+                        shizukuAvailable -> {
+                            TextButton(onClick = {
+                                ShizukuInstaller.requestPermission(1001)
+                                shizukuGranted = ShizukuInstaller.hasPermission()
+                            }) {
+                                Text(s.grantLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                        else -> {
+                            TextButton(onClick = {
+                                shizukuAvailable = ShizukuInstaller.isAvailable()
+                                shizukuGranted   = ShizukuInstaller.hasPermission()
+                            }) {
+                                Text(s.refresh, style = MaterialTheme.typography.labelMedium)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Root (module installs) ───────────────────────────────────
+            //
+            // Sits with Shizuku because they answer the same question — what the app
+            // can do without asking you every time — and because anyone hunting for
+            // one will look where the other is.
+            //
+            // Nothing here probes on its own: `su` is requested when the user taps
+            // Check, or when they install a module. Probing on launch would put a
+            // root prompt in front of every user, most of whom have no root at all.
+            var rootManager by remember {
+                mutableStateOf<com.vythera.vyxelapps.root.RootManager>(
+                    com.vythera.vyxelapps.root.RootManager.None
+                )
+            }
+            var rootChecking by remember { mutableStateOf(false) }
+            val rootScope = rememberCoroutineScope()
+
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Root",
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                when {
+                                    rootChecking -> "Asking for root…"
+                                    !rootManager.available -> "Not detected — tap Check to grant"
+                                    rootManager.version.isBlank() ->
+                                        "${rootManager.label} — modules install directly"
+                                    else ->
+                                        "${rootManager.label} ${rootManager.version} — modules install directly"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (rootManager.available) {
+                            Icon(
+                                Icons.Rounded.CheckCircle, null,
+                                tint     = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            TextButton(
+                                enabled = !rootChecking,
+                                onClick = {
+                                    rootChecking = true
+                                    rootScope.launch {
+                                        rootManager = runCatching {
+                                            com.vythera.vyxelapps.root.RootAccess.detectManager()
+                                        }.getOrDefault(com.vythera.vyxelapps.root.RootManager.None)
+                                        rootChecking = false
+                                    }
+                                }
+                            ) {
+                                Text(
+                                    "Check",
+                                    style      = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Only needed for root modules. Vyxel asks for su when you install " +
+                            "one, never on launch, and never for ordinary apps.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // ── Hidden apps ──────────────────────────────────────
+                    //
+                    // Apps are hidden from their own detail page; this is the way
+                    // back for someone who no longer remembers which ones they hid.
+                    Spacer(Modifier.height(18.dp))
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Hidden apps",
+                                style      = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color      = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                if (hiddenPackages.isEmpty()) "Nothing hidden"
+                                else "${hiddenPackages.size} hidden across every source",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (hiddenPackages.isNotEmpty()) {
+                            TextButton(onClick = onClearHidden) {
+                                Text(
+                                    "Restore all",
+                                    style      = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Backup & Restore ─────────────────────────────────────────
+            Text(
+                s.backupRestore,
+                style         = MaterialTheme.typography.labelSmall,
+                fontWeight    = FontWeight.Bold,
+                color         = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.sp
+            )
+
+            val backupExporter = rememberLauncherForActivityResult(
+                ActivityResultContracts.CreateDocument("application/json")
+            ) { uri ->
+                if (uri != null) {
+                    val ok = try {
+                        context.contentResolver.openOutputStream(uri)?.use { out ->
+                            out.write(onExportBackup().toByteArray(Charsets.UTF_8))
+                        } != null
+                    } catch (_: Exception) { false }
+                    android.widget.Toast.makeText(
+                        context,
+                        if (ok) s.exportDone else s.importFailed,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            val backupImporter = rememberLauncherForActivityResult(
+                ActivityResultContracts.OpenDocument()
+            ) { uri ->
+                if (uri != null) {
+                    val ok = try {
+                        val json = context.contentResolver.openInputStream(uri)
+                            ?.use { it.readBytes().decodeToString() } ?: ""
+                        onImportBackup(json)
+                    } catch (_: Exception) { false }
+                    android.widget.Toast.makeText(
+                        context,
+                        if (ok) s.importDone else s.importFailed,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            GlassSettingsCard(
+                onClick  = {
+                    val date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                        .format(java.util.Date())
+                    backupExporter.launch("vyxel-backup-$date.json")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier              = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Upload, null,
+                            tint     = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text(
+                            s.exportAppList,
+                            style      = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Icon(
+                        Icons.Rounded.ChevronRight, null,
+                        tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            GlassSettingsCard(
+                onClick  = { backupImporter.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier              = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Download, null,
+                            tint     = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text(
+                            s.importAppList,
+                            style      = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Icon(
+                        Icons.Rounded.ChevronRight, null,
+                        tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
 
@@ -1324,18 +2200,14 @@ fun SettingsScreen(
                 letterSpacing = 1.sp
             )
 
-            ElevatedCard(
-                shape     = MaterialTheme.shapes.large,
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier  = Modifier.fillMaxWidth()
-            ) {
+            GlassSettingsCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier              = Modifier.fillMaxWidth().padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(s.versionLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                    Text("1.0.2", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary.copy(0.80f))
+                    // Always tracks build.gradle.kts versionName — never hardcode
+                    Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary.copy(0.80f))
                 }
             }
         }
@@ -1729,16 +2601,23 @@ fun GitHubTokenOnboarding(
     onSkip : () -> Unit
 ) {
     val t          = LocalTheme.current
+    val s          = LocalStrings.current
     var tokenInput by remember { mutableStateOf("") }
+    // Pasting a token from another device is the common case here, and a masked field
+    // gives no way to check the paste landed intact before committing to it.
+    var revealToken by remember { mutableStateOf(false) }
 
     Box(
         modifier         = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier              = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp),
+                .verticalScroll(rememberScrollState())
+                .statusBarSpace()
+                .navigationBarsPadding()
+                .padding(horizontal = 32.dp, vertical = 32.dp),
             horizontalAlignment   = Alignment.CenterHorizontally,
             verticalArrangement   = Arrangement.spacedBy(20.dp)
         ) {
@@ -1835,8 +2714,21 @@ fun GitHubTokenOnboarding(
                 modifier      = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
                 placeholder   = { Text("ghp_xxxxxxxxxxxx", style = MaterialTheme.typography.bodyMedium) },
                 singleLine    = true,
-                visualTransformation = if (tokenInput.length > 4)
+                visualTransformation = if (tokenInput.length > 4 && !revealToken)
                     PasswordVisualTransformation() else VisualTransformation.None,
+                trailingIcon = if (tokenInput.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { revealToken = !revealToken }) {
+                            Icon(
+                                if (revealToken) Icons.Rounded.VisibilityOff
+                                else Icons.Rounded.Visibility,
+                                contentDescription =
+                                    if (revealToken) s.hideTokenLabel else s.showTokenLabel,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                } else null,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHigh,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -1863,6 +2755,334 @@ fun GitHubTokenOnboarding(
 
             TextButton(onClick = onSkip) {
                 Text("Skip for now", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MANAGE CUSTOM REPOS SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+fun ManageCustomReposScreen(
+    customRepos : List<CustomRepo>,
+    onBack      : () -> Unit,
+    onAddNew    : () -> Unit,
+    onDelete    : (String) -> Unit
+) {
+    val s = LocalStrings.current
+    val isGlass = LocalIsLiquidGlass.current
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (isGlass) Color.Transparent else MaterialTheme.colorScheme.background
+    )) {
+        ScreenBackground(ScreenBg.SETTINGS)
+        Column(modifier = Modifier.fillMaxSize()) {
+            SubScreenHeader(title = "My Repos", onBack = onBack)
+
+            if (customRepos.isEmpty()) {
+                // Empty state — centred "New" action
+                Box(
+                    modifier         = Modifier.fillMaxSize().padding(bottom = 110.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Box(
+                            modifier         = Modifier
+                                .size(88.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                null,
+                                tint     = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(44.dp)
+                            )
+                        }
+                        Text(
+                            s.noReposYet,
+                            style      = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            s.addFirstRepo,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FilledTonalButton(
+                            onClick = onAddNew,
+                            shape   = MaterialTheme.shapes.extraLarge
+                        ) {
+                            Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(s.newLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        contentPadding      = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 120.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(customRepos, key = { it.id }) { repo ->
+                            GlassCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape    = MaterialTheme.shapes.large
+                            ) {
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth().padding(12.dp),
+                                    verticalAlignment     = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Box(
+                                        modifier         = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model              = repo.iconUri.ifEmpty { R.drawable.android_icon },
+                                            contentDescription = null,
+                                            modifier           = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)),
+                                            contentScale       = ContentScale.Fit,
+                                            fallback           = painterResource(R.drawable.android_icon),
+                                            error              = painterResource(R.drawable.android_icon)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            repo.name,
+                                            style      = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color      = MaterialTheme.colorScheme.onSurface,
+                                            maxLines   = 1,
+                                            overflow   = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            repo.url,
+                                            style    = MaterialTheme.typography.labelSmall,
+                                            color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    IconButton(onClick = { onDelete(repo.id) }) {
+                                        Icon(
+                                            Icons.Rounded.Delete,
+                                            null,
+                                            tint     = MaterialTheme.colorScheme.error.copy(0.75f),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // FAB — add new
+                    FloatingActionButton(
+                        onClick          = onAddNew,
+                        modifier         = Modifier
+                            .align(Alignment.BottomEnd)
+                            .navigationBarsPadding()
+                            .padding(end = 24.dp, bottom = 100.dp),
+                        containerColor   = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor     = MaterialTheme.colorScheme.primary,
+                        shape            = MaterialTheme.shapes.extraLarge
+                    ) {
+                        Row(
+                            modifier              = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(18.dp))
+                            Text("New", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD REPO SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+fun AddCustomRepoScreen(
+    onBack : () -> Unit,
+    onSave : (CustomRepo) -> Unit
+) {
+    val context = LocalContext.current
+    val isGlass = LocalIsLiquidGlass.current
+    val s       = LocalStrings.current
+
+    var name     by remember { mutableStateOf("") }
+    var url      by remember { mutableStateOf("") }
+    var iconUri  by remember { mutableStateOf("") }
+
+    var nameError by remember { mutableStateOf(false) }
+    var urlError  by remember { mutableStateOf(false) }
+
+    val iconPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let {
+            // Persist read permission for this URI
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: Exception) {}
+            iconUri = it.toString()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (isGlass) Color.Transparent else MaterialTheme.colorScheme.background
+    )) {
+        ScreenBackground(ScreenBg.SETTINGS)
+        Column(modifier = Modifier.fillMaxSize()) {
+            SubScreenHeader(title = s.addRepo, onBack = onBack)
+
+            Column(
+                modifier            = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 120.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Icon picker
+                Text(
+                    "ICON",
+                    style         = MaterialTheme.typography.labelSmall,
+                    fontWeight    = FontWeight.Bold,
+                    color         = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 1.sp
+                )
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .clickable {
+                                iconPicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model              = iconUri.ifEmpty { R.drawable.android_icon },
+                            contentDescription = null,
+                            modifier           = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)),
+                            contentScale       = ContentScale.Fit,
+                            fallback           = painterResource(R.drawable.android_icon),
+                            error              = painterResource(R.drawable.android_icon)
+                        )
+                        // Pencil badge
+                        Box(
+                            modifier         = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.Edit, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(12.dp))
+                        }
+                    }
+                    Column {
+                        Text(
+                            if (iconUri.isNotEmpty()) "Icon selected" else "Tap to choose icon",
+                            style      = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            "Optional — android icon used by default",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Name
+                Text(
+                    "DETAILS",
+                    style         = MaterialTheme.typography.labelSmall,
+                    fontWeight    = FontWeight.Bold,
+                    color         = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 1.sp
+                )
+                TextField(
+                    value         = name,
+                    onValueChange = { name = it; nameError = false },
+                    modifier      = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                    placeholder   = { Text("Repo name", style = MaterialTheme.typography.bodyMedium) },
+                    label         = { Text("Name *") },
+                    singleLine    = true,
+                    isError       = nameError,
+                    supportingText = if (nameError) {
+                        { Text("Name is required", color = MaterialTheme.colorScheme.error) }
+                    } else null,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedIndicatorColor   = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor      = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+
+                // URL / Link
+                TextField(
+                    value         = url,
+                    onValueChange = { url = it; urlError = false },
+                    modifier      = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                    placeholder   = { Text("https://github.com/owner/repo", style = MaterialTheme.typography.bodyMedium) },
+                    label         = { Text("Link *") },
+                    singleLine    = true,
+                    isError       = urlError,
+                    supportingText = if (urlError) {
+                        { Text("Link is required", color = MaterialTheme.colorScheme.error) }
+                    } else null,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedIndicatorColor   = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor      = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+
+                // Save button
+                Button(
+                    onClick  = {
+                        val trimmedName = name.trim()
+                        val trimmedUrl  = url.trim()
+                        nameError = trimmedName.isEmpty()
+                        urlError  = trimmedUrl.isEmpty()
+                        if (!nameError && !urlError) {
+                            onSave(CustomRepo(name = trimmedName, url = trimmedUrl, iconUri = iconUri))
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape    = MaterialTheme.shapes.large
+                ) {
+                    Icon(Icons.Rounded.Check, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(s.addRepo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

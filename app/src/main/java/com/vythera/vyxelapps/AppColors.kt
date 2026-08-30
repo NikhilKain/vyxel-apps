@@ -1,6 +1,8 @@
 package com.vythera.vyxelapps
 
 import android.graphics.Typeface
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
@@ -236,18 +238,98 @@ val CustomTheme: AppThemeColors get() = DarkTheme.copy()
 
 val LocalTheme = compositionLocalOf<AppThemeColors> { DarkTheme }
 
+/**
+ * Reserves the space the status bar occupies, whether or not it is currently visible.
+ *
+ * The app hides the status bar for a full-bleed look, which drops the ordinary
+ * `statusBarsPadding()` to zero and pins headers to the very top edge — readable, but
+ * visibly cramped. `…IgnoringVisibility` reports the inset the bar *would* have, so
+ * layouts keep the breathing room they were designed with and nothing shifts when the
+ * bar is swiped back in transiently.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@androidx.compose.runtime.Composable
+fun androidx.compose.ui.Modifier.statusBarSpace(): androidx.compose.ui.Modifier =
+    this.windowInsetsPadding(
+        androidx.compose.foundation.layout.WindowInsets.statusBarsIgnoringVisibility
+    )
+
+/**
+ * Projects a Vyxel palette onto a Material 3 [androidx.compose.material3.ColorScheme].
+ *
+ * Both shells render the same premium themes, so the mapping lives here rather than
+ * being written out at each theming site — otherwise the two skins of one app could
+ * disagree about, say, which palette slot `surfaceContainerHigh` comes from.
+ */
+fun AppThemeColors.toColorScheme(): androidx.compose.material3.ColorScheme {
+    val base = if (isDark) androidx.compose.material3.darkColorScheme()
+    else androidx.compose.material3.lightColorScheme()
+    return base.copy(
+        primary              = accent,
+        primaryContainer     = accentContainer,
+        onPrimaryContainer   = onAccentContainer,
+        secondary            = accentAlt,
+        tertiary             = accentTertiary,
+        tertiaryContainer    = accentTertiaryContainer,
+        background           = bgPrimary,
+        surface              = bgSurface,
+        surfaceContainer     = bgSurfaceAlt,
+        surfaceContainerHigh = bgSurfaceHigh,
+        onBackground         = textPrimary,
+        onSurface            = textPrimary,
+        onSurfaceVariant     = textSecondary,
+        outline              = border,
+        outlineVariant       = borderVariant,
+    )
+}
+
+// GitHub repos confirmed to have no installable APK. Home rows read this to hide
+// them without every call site needing the set threaded through. Empty by default
+// (e.g. in previews and non-home surfaces), so it filters nothing there.
+val LocalApkAbsentIds = compositionLocalOf { emptySet<Long>() }
+
+// Material You — palette derived from the user's wallpaper (Android 12+).
+// Callers must gate on Build.VERSION.SDK_INT >= 31.
+fun dynamicAppThemeColors(context: android.content.Context, dark: Boolean): AppThemeColors {
+    val s = if (dark) androidx.compose.material3.dynamicDarkColorScheme(context)
+            else      androidx.compose.material3.dynamicLightColorScheme(context)
+    return AppThemeColors(
+        bgPrimary               = s.background,
+        bgSurface               = s.surface,
+        bgSurfaceAlt            = s.surfaceContainer,
+        bgSurfaceHigh           = s.surfaceContainerHigh,
+        textPrimary             = s.onSurface,
+        textSecondary           = s.onSurfaceVariant,
+        accent                  = s.primary,
+        accentAlt               = s.secondary,
+        accentContainer         = s.primaryContainer,
+        onAccentContainer       = s.onPrimaryContainer,
+        accentTertiary          = s.tertiary,
+        accentTertiaryContainer = s.tertiaryContainer,
+        border                  = s.outline,
+        borderVariant           = s.outlineVariant,
+        dockBg                  = s.surfaceContainerHigh,
+        dockForeground          = s.primary,
+        isDark                  = dark
+    )
+}
+
 enum class ThemeName(val label: String, val emoji: String) {
     LIGHT("Light", "☀️"), DARK("Dark", "🌙"), MINIMAL("Minimal", "◾"),
-    AMOLED("AMOLED", "🖤"), SUNSET("Sunset", "🌅"), CUSTOM("Custom", "🎨")
+    AMOLED("AMOLED", "🖤"), SUNSET("Sunset", "🌅"), CUSTOM("Custom", "🎨"),
+    LIQUID_GLASS_DARK("Liquid Glass Dark", "🔮"),
+    LIQUID_GLASS_LIGHT("Liquid Glass Light", "🪟")
 }
 
 fun themeColors(name: ThemeName) = when (name) {
-    ThemeName.LIGHT   -> LightTheme
-    ThemeName.DARK    -> DarkTheme
-    ThemeName.MINIMAL -> MinimalTheme
-    ThemeName.AMOLED  -> AmoledTheme
-    ThemeName.SUNSET  -> SunsetTheme
-    ThemeName.CUSTOM  -> CustomTheme
+    ThemeName.LIGHT             -> LightTheme
+    ThemeName.DARK              -> DarkTheme
+    ThemeName.MINIMAL           -> MinimalTheme
+    ThemeName.AMOLED            -> AmoledTheme
+    ThemeName.SUNSET            -> SunsetTheme
+    ThemeName.CUSTOM            -> CustomTheme
+    ThemeName.LIQUID_GLASS_DARK -> DarkTheme
+    ThemeName.LIQUID_GLASS_LIGHT -> LightTheme
 }
 
 val StarGold  = Color(0xFFF59E0B)

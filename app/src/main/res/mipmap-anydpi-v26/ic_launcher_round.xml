@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Full-bleed artwork as the foreground, on a black background.
+
+    The supplied art is already a complete squircle icon, so it is used at full
+    canvas rather than inset into the 66% safe zone: the launcher mask crops the
+    corners, which is exactly what should happen to a rounded-square source. The
+    background is black because the art's own corners are black, so any sliver the
+    mask leaves matches instead of showing a seam — and Android 12+ builds its splash
+    from this same foreground, where a matching ground keeps the icon from floating.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background"/>
     <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
