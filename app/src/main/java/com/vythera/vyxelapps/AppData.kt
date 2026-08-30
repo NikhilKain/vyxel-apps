@@ -1425,48 +1425,6 @@ class PreferencesManager(context: Context) {
         } catch (_: Exception) { emptyList() }
     }
 
-    // Signed entitlement token (see Entitlement.kt). This is the real record of
-    // entitlement; the legacy boolean below is only kept for migration.
-    fun saveEntitlementToken(token: String) =
-        tokenPrefs?.edit()?.putString("ent_token", token)?.apply()
-            ?: prefs.edit().putString("ent_token_fb", token).apply()
-    fun loadEntitlementToken(): String =
-        tokenPrefs?.getString("ent_token", null)
-            ?: prefs.getString("ent_token_fb", "") ?: ""
-    fun clearEntitlementToken() {
-        tokenPrefs?.edit()?.remove("ent_token")?.apply()
-        prefs.edit().remove("ent_token_fb").apply()
-    }
-
-    /**
-     * One-time migration window for users who unlocked before tokens existed.
-     * Their install has the legacy boolean but no token, and forcing them to
-     * re-enter a key on update would be hostile — so the boolean is honoured
-     * until this deadline or until a token is obtained, whichever comes first.
-     * After it passes the boolean carries no weight at all.
-     */
-    fun legacyUnlockDeadline(): Long {
-        val existing = prefs.getLong("legacy_unlock_deadline", 0L)
-        if (existing != 0L) return existing
-        val deadline = System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000
-        prefs.edit().putLong("legacy_unlock_deadline", deadline).apply()
-        return deadline
-    }
-
-    // License key — stored in EncryptedSharedPreferences (same as GitHub token)
-    fun saveLiquidGlassUnlocked(v: Boolean) =
-        tokenPrefs?.edit()?.putBoolean("lg_unlocked", v)?.apply()
-            ?: prefs.edit().putBoolean("lg_unlocked_fb", v).apply()
-    fun loadLiquidGlassUnlocked(): Boolean =
-        tokenPrefs?.getBoolean("lg_unlocked", false)
-            ?: prefs.getBoolean("lg_unlocked_fb", false)
-    fun saveUsedLicenseKey(key: String) =
-        tokenPrefs?.edit()?.putString("lg_used_key", key)?.apply()
-            ?: prefs.edit().putString("lg_used_key_fb", key).apply()
-    fun loadUsedLicenseKey(): String =
-        tokenPrefs?.getString("lg_used_key", null)
-            ?: prefs.getString("lg_used_key_fb", "") ?: ""
-
     fun saveTodayPicks(p: TodayPicks) =
         prefs.edit().putString("today_picks", gson.toJson(p)).apply()
     fun loadTodayPicks(): TodayPicks = fromJson("today_picks") ?: TodayPicks()

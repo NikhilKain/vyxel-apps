@@ -113,9 +113,9 @@ fun SettingsScreen(
     /**
      * PRO themes gate, read from Classic's licence state.
      *
-     * The skins here *are* Classic's premium themes, so they are sold once and unlock
-     * together: a key verified on either side opens both shells. Backed by the signed
-     * entitlement token — see Entitlement.kt.
+     * Always false in the open-core build: the premium skins and the licence check
+     * that unlocks them are part of the paid build. Kept on the signature so the two
+     * builds share one settings screen rather than forking it.
      */
     proUnlocked: Boolean = false,
     licenseKeyInput: String = "",
