@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vyxel Apps Privacy Policy</title>
+<style>
+  :root { --bg:#fbf8ff; --fg:#1c1b20; --muted:#5d5a66; --card:#f1ecf7; --accent:#6750a4; --line:#ddd6e8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#131216; --fg:#e7e1ec; --muted:#aaa4b3; --card:#1e1c23; --accent:#cfbcff; --line:#36323d; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:40px 16px 64px; }
+  h1 { font-size:2rem; line-height:1.2; margin:0 0 4px; }
+  h2 { font-size:1.25rem; margin:36px 0 8px; }
+  h3 { font-size:1.05rem; margin:20px 0 6px; }
+  p, li { color:var(--fg); }
+  .muted { color:var(--muted); }
+  .summary { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 20px; margin:24px 0; }
+  .summary ul { margin:8px 0 0; padding-left:20px; }
+  table { width:100%; border-collapse:collapse; margin:8px 0 16px; font-size:.95rem; }
+  th, td { text-align:left; vertical-align:top; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  a { color:var(--accent); }
+  code { font-size:.9em; }
+  footer { margin-top:48px; color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Vyxel Apps Privacy Policy</h1>
+  <p class="muted">Effective 12 October 2026 · App: Vyxel Apps (<code>com.vythera.vyxelapps</code>) · Developer: Vythera</p>
+
+  <div class="summary">
+    <strong>In short</strong>
+    <ul>
+      <li>No ads, no advertising IDs, no third-party analytics or tracking SDKs. We never sell your data.</li>
+      <li>Your favourites, history, settings, tokens and keys stay on your phone unless you choose to sign in with Google.</li>
+      <li>Signing in with Google is optional. If you do, we keep your Google account ID, email, name and a backup of your Vyxel settings so you can restore them on another phone. You can delete it all from the app at any time.</li>
+      <li>The app sends a small, anonymous device check-in (hashed device ID, model, Android version, app version, session length, approximate location from your IP) so we can keep the service running and stop abuse.</li>
+      <li>When you browse or download apps, your phone talks directly to the app sources you enable (for example GitHub or F-Droid), which see your IP address.</li>
+    </ul>
+  </div>
+
+  <h2>1. Data that stays on your device</h2>
+  <p>The following is stored only in the app's private storage on your phone and is not sent to us:</p>
+  <ul>
+    <li>Favourites, recently viewed apps, search history, followed apps, tracked apps, custom repositories, install history and downloaded installer files.</li>
+    <li>Your settings: theme, language, enabled sources, hidden apps and similar preferences.</li>
+    <li>Your GitHub token and your APKMirror (Parse) API key, if you add them. They are only ever sent to GitHub or APKMirror respectively, to make the requests you ask for.</li>
+    <li>Your PRO licence key and the signed licence token.</li>
+    <li>Accounts you create with an email and password. These live only on your phone; the password is stored as a salted hash, never in plain text, and is never sent anywhere.</li>
+  </ul>
+  <p>Sign-in session data is kept in encrypted storage and is excluded from Android's own cloud backup.</p>
+
+  <h2>2. Sign in with Google and cloud backup (optional)</h2>
+  <p>You can use Vyxel without an account. If you choose <em>Continue with Google</em>, Google shares the following with Vyxel after you pick your account:</p>
+  <ul>
+    <li>your Google account identifier, email address, name and profile picture.</li>
+  </ul>
+  <p>Our account service (a Cloudflare Worker with a Cloudflare D1 database) verifies the sign-in with Google and stores:</p>
+  <table>
+    <tr><th>What</th><th>Why</th></tr>
+    <tr><td>Google account identifier, email address, name, when you signed up and when you last used the service</td><td>To recognise your account and show who is signed in.</td></tr>
+    <tr><td>One backup of your Vyxel data: profile name and theme, appearance settings, favourites, followed apps, tracked apps, custom repositories, enabled and hidden sources, preferences, and the list of apps you installed (package names and versions, so they can be offered for reinstall)</td><td>To restore your setup on a new or reset phone and keep your phones in sync.</td></tr>
+  </table>
+  <p>Your profile picture is shown in the app from Google's link; we do not store the image. Backups <strong>never</strong> include your GitHub token, APKMirror key, PRO licence key or licence token, passwords, downloaded files, or the list of system apps on your phone.</p>
+  <p>Backups are limited in size and are kept until you delete them. To delete your account and backup, open <em>Profile → Delete account</em> in the app; this removes them from our database immediately. Signing out removes the account from your phone but keeps your backup so you can sign in again later.</p>
+
+  <h2>3. Device check-in</h2>
+  <p>Each time the app is opened and closed it sends a short check-in to our service so we can see how many devices use Vyxel, keep it available, and disable it on a device if the service is being abused. It contains:</p>
+  <ul>
+    <li>a device identifier that is a one-way SHA-256 hash (the raw Android ID never leaves your phone), a random installation ID and a session ID;</li>
+    <li>device manufacturer and model, Android version, app version and whether it is a phone or TV;</li>
+    <li>how long the app was open in that session.</li>
+  </ul>
+  <p>From the connection we derive an approximate city, region and country. Your IP address itself is not stored. We also keep when the device was first and last seen and how many times the app was opened. This data is not linked to your name, email or Google account.</p>
+
+  <h2>4. PRO themes</h2>
+  <p>When you unlock PRO, the app sends your licence key, the app's package name and the hash of the app's signing certificate to our licence service, which checks the key with the store you bought it from (Polar or Gumroad) and returns a signed token. The token is stored on your phone and is periodically re-checked. The premium theme pack is then downloaded and stored encrypted on your phone. Your purchase itself (payment details, billing email) is handled by Polar or Gumroad under their own privacy policies; we never see your payment details.</p>
+
+  <h2>5. Services your phone contacts directly</h2>
+  <p>To list, search, update and download apps, Vyxel connects from your phone directly to the sources you enable. These services receive your IP address and the requests you make, under their own privacy policies. Depending on your settings they include GitHub, GitLab, Codeberg, F-Droid and its mirrors, IzzyOnDroid, Flathub, WinGet, Aptoide, APKPure, Uptodown, TapTap and APKMirror (only with your own API key). The app also loads its app catalogue, featured apps and announcements from our content host on GitHub Pages, and uses Google Translate if you translate app descriptions.</p>
+
+  <h2>6. Where data is processed</h2>
+  <p>Our account, check-in and licence services run on Cloudflare's network and store data in Cloudflare D1. Cloudflare may process connection information, such as IP addresses, to deliver and protect these services. Data may be processed in countries other than yours.</p>
+
+  <h2>7. Security</h2>
+  <p>All connections use HTTPS. Google sign-ins are verified on our server against Google's published keys. Sessions expire after 30 days. Sign-in data on the phone is stored encrypted. No method of storage or transmission is completely secure, but we keep what we hold to the minimum described here.</p>
+
+  <h2>8. Your choices</h2>
+  <ul>
+    <li>Use Vyxel without an account; nothing in section 2 is collected.</li>
+    <li>Delete your account and cloud backup at any time from <em>Profile → Delete account</em>.</li>
+    <li>Turn off any app source in <em>Settings</em> so your phone no longer contacts it.</li>
+    <li>Uninstalling the app removes everything stored on your phone.</li>
+    <li>To ask about, or request deletion of, any data we hold (including device check-ins), email us at the address below with the device code shown in the app if you have one.</li>
+  </ul>
+
+  <h2>9. Children</h2>
+  <p>Vyxel is not directed at children under 13, and we do not knowingly collect personal information from them. If you believe a child has signed in, contact us and we will delete the account.</p>
+
+  <h2>10. Changes</h2>
+  <p>If this policy changes, we will update the date above and, for significant changes, announce it in the app or on our Telegram channel.</p>
+
+  <h2>11. Contact</h2>
+  <p>Vythera · <a href="mailto:narzo9990@gmail.com">narzo9990@gmail.com</a></p>
+
+  <footer>Made with ❤️ for the community by Vythera</footer>
+</main>
+</body>
+</html>
