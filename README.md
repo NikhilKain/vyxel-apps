@@ -2,8 +2,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.svg">
-  <img src="docs/readme/hero-light.svg" width="100%" alt="Vyxel Apps — every store, one place. F-Droid, GitHub, Google Play, TapTap and 14 more. Works offline, zero ads, zero bloat.">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
+  <img src="docs/readme/hero-light.png" width="100%" alt="Vyxel Apps — every store, one place. F-Droid, GitHub, Google Play, TapTap and 14 more. Works offline, zero ads, zero bloat.">
 </picture>
 
 [![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps?style=for-the-badge&color=5FF5D3&labelColor=0B1D4F)](https://github.com/NikhilKain/vyxel-apps/releases)
@@ -19,13 +19,13 @@
 
 <br/>
 
-<img src="docs/readme/stats.svg" width="100%" alt="18 sources in one feed · 17 curated categories · 16 languages · 0 ads or trackers"/>
+<img src="docs/readme/stats.png" width="100%" alt="18 sources in one feed · 17 curated categories · 16 languages · 0 ads or trackers"/>
 
 > [!IMPORTANT]
 > **This repository is the only official source of Vyxel Apps.** APKs from any other website,
 > Telegram channel or mirror are unofficial and may be tampered with. Always verify the signature.
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="whats-new"></a>
 ## 🆕 New in v1.1.2 — Bedrock
@@ -38,12 +38,12 @@
 
 [Full release notes →](https://github.com/NikhilKain/vyxel-apps/releases)
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="features"></a>
 ## ✨ Features
 
-<img src="docs/readme/sources.svg" width="100%" alt="Sources: F-Droid, IzzyOnDroid, developer repos, GitHub, GitLab, Codeberg, Google Play, Aptoide, TapTap, Aurora OSS, APKPure, patched apps, Flathub, WinGet, Magisk, Zygisk, LSPosed, KernelSU"/>
+<img src="docs/readme/sources.png" width="100%" alt="Sources: F-Droid, IzzyOnDroid, developer repos, GitHub, GitLab, Codeberg, Google Play, Aptoide, TapTap, Aurora OSS, APKPure, patched apps, Flathub, WinGet, Magisk, Zygisk, LSPosed, KernelSU"/>
 
 <table>
 <tr>
@@ -98,12 +98,12 @@ Dismissible banners for giveaways, releases and community updates.
 </tr>
 </table>
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="themes"></a>
 ## 🎨 Themes
 
-<img src="docs/readme/themes.svg" width="100%" alt="Themes: Expressive (free), Liquid Glass Light, Liquid Glass Dark, Neon Punk and Cyberpunk (Pro), and the Atelier skin"/>
+<img src="docs/readme/themes.png" width="100%" alt="Themes: Expressive (free), Liquid Glass Light, Liquid Glass Dark, Neon Punk and Cyberpunk (Pro), and the Atelier skin"/>
 
 <a id="liquid-glass-pro"></a>
 ### 💎 Liquid Glass Pro <sub>(optional)</sub>
@@ -118,7 +118,7 @@ The app is fully usable without it — see [Open core](#open-core) for exactly w
 
 </div>
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="screenshots"></a>
 ## 📱 Screenshots
@@ -142,7 +142,7 @@ The app is fully usable without it — see [Open core](#open-core) for exactly w
 
 </div>
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="installation"></a>
 ## 📥 Installation
@@ -266,7 +266,7 @@ Every contribution goes directly toward new features, bug fixes, performance imp
 
 <div align="center">
 
-<img src="docs/readme/divider.svg" width="100%" alt=""/>
+<img src="docs/readme/divider.png" width="100%" alt=""/>
 
 Made with ❤️ for the community by Vythera
 
