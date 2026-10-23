@@ -43,7 +43,8 @@ class UpdateCheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorke
                         repoName   = entry.repoName,
                         currentTag = entry.tagName,
                         latestTag  = release.tag_name,
-                        changelog  = release.body ?: ""
+                        changelog  = release.body ?: "",
+                        ownerLogin = entry.ownerLogin
                     ))
                 }
             } catch (_: Exception) {}

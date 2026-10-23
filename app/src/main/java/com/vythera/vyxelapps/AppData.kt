@@ -357,8 +357,15 @@ data class UpdateInfo(
     val repoName   : String,
     val currentTag : String,
     val latestTag  : String,
-    val changelog  : String
-)
+    val changelog  : String,
+    // Repo owner. Nullable on purpose: updates cached by older versions are read back
+    // through Gson, which skips Kotlin defaults, so this is null for them.
+    val ownerLogin : String? = null
+) {
+    /** "owner/repo" when the owner is known, otherwise whatever [repoName] holds. */
+    val fullName: String
+        get() = if (!ownerLogin.isNullOrBlank() && '/' !in repoName) "$ownerLogin/$repoName" else repoName
+}
 
 data class SelfUpdateInfo(
     val latestVersion : String,
@@ -4066,7 +4073,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     if (latestTag.isNotBlank() && isVersionNewerThan(latestTag, entry.tagName)) {
                         val key = "${entry.repoId}:$latestTag"
                         if (key !in state.ignoredVersions) {
-                            updates.add(UpdateInfo(entry.repoId, entry.repoName, entry.tagName, latestTag, changelog))
+                            updates.add(UpdateInfo(entry.repoId, entry.repoName, entry.tagName, latestTag, changelog, ownerLogin = entry.ownerLogin))
                         }
                     }
                 } catch (_: Exception) {}

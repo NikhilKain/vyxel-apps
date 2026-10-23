@@ -267,7 +267,7 @@ fun UpdateInfo.toAppItem(): AppItem = AppItem(
     description = changelog,
     version = latestTag,
     changelog = changelog.takeIf { it.isNotBlank() },
-    sourceCodeUrl = "https://github.com/$repoName",
+    sourceCodeUrl = "https://github.com/$fullName",
 )
 
 /**
