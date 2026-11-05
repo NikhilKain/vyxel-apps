@@ -3,7 +3,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-dark.png">
-  <img src="docs/readme/hero-light.png" width="100%" alt="Vyxel Apps — every store, one place. F-Droid, GitHub, Google Play, TapTap and 14 more. Works offline, zero ads, zero bloat.">
+  <img src="docs/readme/hero-light.png" width="100%" alt="Vyxel Apps — every store, one place. F-Droid, GitHub, GitLab, TapTap and 14 more. Works offline, zero ads, zero bloat.">
 </picture>
 
 [![Release](https://img.shields.io/github/v/release/NikhilKain/vyxel-apps?style=for-the-badge&color=5FF5D3&labelColor=0B1D4F)](https://github.com/NikhilKain/vyxel-apps/releases)
@@ -28,13 +28,14 @@
 <img src="docs/readme/divider.png" width="100%" alt=""/>
 
 <a id="whats-new"></a>
-## 🆕 New in v1.1.2 — Bedrock
+## 🆕 New in v1.1.6 — Drift
 
-- **📴 Works offline.** An offline catalogue keeps every source's app list on your phone, so browsing and search work with no connection and answer before the network does. It syncs once a day, incrementally, on Wi-Fi by default, within a storage limit you choose, and never spends the GitHub quota you need.
-- **🧰 Developer repos.** The F-Droid repositories Droid-ify and Neo Store ship with — Bitwarden, NewPipe, microG, Guardian Project, Molly, Session, Threema and more — with builds signed by the projects themselves.
-- **🎮 TapTap.** Game charts and search, installed from Google Play or Aptoide when a verified build exists.
-- **⬇️ Download APK** on every app page, and installed apps, updates and tracked apps now open to a real file instead of "No APK".
-- **A new icon**, and the launch crash some phones hit on 1.1.1 fixed for real.
+- **📂 Custom repositories.** Add an F-Droid catalog, a GitHub, GitLab or Codeberg project, or an APK download page, then browse it from App sources.
+- **🎛️ Update controls.** Skip a version, exclude an app, set a preferred update source, or lock one app to one source.
+- **📌 Better tracking.** Track an app before installing it, or add a repo directly by link.
+- **🌊 New dock animation.** The selected icon floats in its own circle, dips behind the dock and rises at the next tab.
+- **💎 A refined look.** New sign-in and welcome screens, softer controls, and rounded app icons.
+- **↩️ Your place, kept.** Back returns to your exact scroll position across the app.
 
 [Full release notes →](https://github.com/NikhilKain/vyxel-apps/releases)
 
@@ -43,14 +44,14 @@
 <a id="features"></a>
 ## ✨ Features
 
-<img src="docs/readme/sources.png" width="100%" alt="Sources: F-Droid, IzzyOnDroid, developer repos, GitHub, GitLab, Codeberg, Google Play, Aptoide, TapTap, Aurora OSS, APKPure, patched apps, Flathub, WinGet, Magisk, Zygisk, LSPosed, KernelSU"/>
+<img src="docs/readme/sources.png" width="100%" alt="Sources: F-Droid, IzzyOnDroid, developer repos, GitHub, GitLab, Codeberg, Aurora OSS, Aptoide, TapTap, APKPure, Uptodown, APKMirror, Flathub, WinGet and root modules"/>
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
 **🔍 18 sources, one store**<br/>
-F-Droid, IzzyOnDroid, the developers' own F-Droid repos, GitHub, GitLab, Codeberg, Google Play, Aptoide, TapTap, Aurora OSS, APKPure, patched apps, Flathub and WinGet, plus four root-module repositories — searched and merged into a single feed.
+F-Droid, IzzyOnDroid, the developers' own F-Droid repos, GitHub, GitLab, Codeberg, Aurora OSS, Aptoide, TapTap, APKPure, Uptodown, APKMirror, Flathub and WinGet, plus four root-module repositories — searched and merged into a single feed.
 
 **📴 Works offline**<br/>
 Every source's app list is kept on the phone. Browse and search with no connection; online, search answers from disk before the network does.
@@ -91,6 +92,12 @@ Sync your stars into favourites.
 **🌍 16 languages**<br/>
 English, Hindi, Spanish, French, German, Japanese, Portuguese, Italian, Russian, Chinese, Korean, Arabic, Dutch, Turkish, Polish, Swedish.
 
+**📂 Custom repositories**<br/>
+Add your own F-Droid catalogs, project links and APK pages, and browse each one on its own page.
+
+**🎛️ Update controls**<br/>
+Skip versions, exclude apps, and choose which source each app updates from.
+
 **📢 In-app announcements**<br/>
 Dismissible banners for giveaways, releases and community updates.
 
@@ -128,15 +135,21 @@ The app is fully usable without it — see [Open core](#open-core) for exactly w
 <table>
 <tr>
 <td align="center"><img src="docs/readme/screens/today-expressive.png" width="200" alt="Today — Expressive theme"/><br/><sub><b>Today</b> · Expressive</sub></td>
+<td align="center"><img src="docs/readme/screens/today-liquid-glass-dark.png" width="200" alt="Today — Liquid Glass Dark theme"/><br/><sub><b>Today</b> · Liquid Glass Dark</sub></td>
 <td align="center"><img src="docs/readme/screens/today-liquid-glass-light.png" width="200" alt="Today — Liquid Glass Light theme"/><br/><sub><b>Today</b> · Liquid Glass Light</sub></td>
 <td align="center"><img src="docs/readme/screens/today-cyberpunk.png" width="200" alt="Today — Cyberpunk theme"/><br/><sub><b>Today</b> · Cyberpunk</sub></td>
-<td align="center"><img src="docs/readme/screens/today-atelier.png" width="200" alt="Today — Atelier skin"/><br/><sub><b>Today</b> · Atelier</sub></td>
 </tr>
 <tr>
 <td align="center"><img src="docs/readme/screens/explore.png" width="200" alt="Explore"/><br/><sub><b>Explore</b></sub></td>
 <td align="center"><img src="docs/readme/screens/search.png" width="200" alt="Search"/><br/><sub><b>Search</b></sub></td>
+<td align="center"><img src="docs/readme/screens/app-details.png" width="200" alt="App details"/><br/><sub><b>App details</b></sub></td>
 <td align="center"><img src="docs/readme/screens/library.png" width="200" alt="Library"/><br/><sub><b>Library</b></sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/readme/screens/custom-repo.png" width="200" alt="A custom repository"/><br/><sub><b>Custom repos</b></sub></td>
 <td align="center"><img src="docs/readme/screens/settings-skins.png" width="200" alt="Settings — skins"/><br/><sub><b>Settings</b> · skins</sub></td>
+<td align="center"><img src="docs/readme/screens/welcome.png" width="200" alt="Welcome screen"/><br/><sub><b>Welcome</b></sub></td>
+<td align="center"><img src="docs/readme/screens/today-atelier.png" width="200" alt="Today — Atelier skin"/><br/><sub><b>Today</b> · Atelier</sub></td>
 </tr>
 </table>
 
@@ -147,7 +160,7 @@ The app is fully usable without it — see [Open core](#open-core) for exactly w
 <a id="installation"></a>
 ## 📥 Installation
 
-1. Download the latest APK from [Releases](https://github.com/NikhilKain/vyxel-apps/releases/latest).
+1. Download the latest APK from [Releases](https://github.com/NikhilKain/vyxel-apps/releases/latest). Most phones need `app-arm64-v8a-release.apk`; if you're not sure, use `app-universal-release.apk`.
 2. On your Android device: **Settings → Apps → Special access → Install unknown apps** → allow your browser or file manager.
 3. Tap the downloaded APK to install.
 
@@ -171,7 +184,7 @@ Open the project in Android Studio (JDK 17, compileSdk 37, targetSdk 36, minSdk 
 | `gumroad.product.id` | Liquid Glass Pro licence verification | Verification disabled — Pro themes stay locked |
 | `lg.hmac.secret` / `lg.script.url` | Liquid Glass licence signing endpoint | N/A in forks |
 
-Everything else — the six-source scanner, Trust Score, comparison mode, widget and free themes — works fully without any secrets configured.
+Everything else — the update scanner, Trust Score, comparison mode, widget and free themes — works fully without any secrets configured.
 
 </details>
 
@@ -190,7 +203,7 @@ Vyxel Apps is **open core**. Everything that makes it an app store is open sourc
 - Downloads, signature verification, Shizuku installs
 - Update scanning, rollback and install history
 - The Modules screen (Magisk, Zygisk, LSPosed, KernelSU)
-- Both interfaces — Classic and Expressive
+- The Expressive interface
 - Trust Score, comparison, backup/restore
 - 16 languages
 
